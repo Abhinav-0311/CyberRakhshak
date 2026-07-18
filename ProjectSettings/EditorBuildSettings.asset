@@ -4,7 +4,22 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/_CyberRakshak/Scenes/Splash.unity
+    guid: 56474dcefcd74fd438c5e3354eeca7c0
+  - enabled: 1
+    path: Assets/_CyberRakshak/Scenes/MainMenu.unity
+    guid: 0839b9c5e14979546a99a6445465d7d5
+  - enabled: 1
+    path: Assets/_CyberRakshak/Scenes/LevelSelect.unity
+    guid: 66363f58b27d4cc4ea0206f704b4cfcf
+  - enabled: 1
+    path: Assets/_CyberRakshak/Scenes/Game_Tutorial.unity
+    guid: d33ece5348f4ae740845a916d063d2b3
+  - enabled: 1
+    path: Assets/_CyberRakshak/Scenes/Game_Level01.unity
+    guid: 9676ff43876a3894ba19fefabac6bdb8
   m_configObjects:
     com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: 57679d351a22f2d4785ea0b62f86f965, type: 2}
   m_UseUCBPForAssetBundles: 0

@@ -73,5 +73,11 @@ private void Awake()
                 Cursor.visible = false;
             }
         }
-    }
+    
+
+public void SetSensitivity(float value)
+        {
+            mouseSensitivity = Mathf.Clamp(value, 50f, 300f);
+        }
+}
 }
