@@ -21,6 +21,10 @@ namespace CyberRakshak.Runtime
             musicSlider.SetValueWithoutNotify(PlayerPrefs.GetFloat(MusicKey, 1f));
             sfxSlider.SetValueWithoutNotify(PlayerPrefs.GetFloat(SfxKey, 1f));
             sensitivitySlider.SetValueWithoutNotify(PlayerPrefs.GetFloat(SensitivityKey, 1f));
+
+            musicSlider.onValueChanged.AddListener(SetMusic);
+            sfxSlider.onValueChanged.AddListener(SetSfx);
+            sensitivitySlider.onValueChanged.AddListener(SetSensitivity);
         }
 
         public void Open()
