@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 #if ENABLE_INPUT_SYSTEM 
 using UnityEngine.InputSystem;
 #endif
@@ -200,9 +200,10 @@ namespace StarterAssets
             {
                 //Don't multiply mouse input by Time.deltaTime;
                 float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
+                float sensitivity = Mathf.Lerp(0.1f, 3.0f, PlayerPrefs.GetFloat("CyberRakshak.Sensitivity", 0.5f));
 
-                _cinemachineTargetYaw += _input.look.x * deltaTimeMultiplier;
-                _cinemachineTargetPitch += _input.look.y * deltaTimeMultiplier;
+                _cinemachineTargetYaw += _input.look.x * deltaTimeMultiplier * sensitivity;
+                _cinemachineTargetPitch += _input.look.y * deltaTimeMultiplier * sensitivity;
             }
 
             // clamp our rotations so our values are limited 360 degrees
@@ -376,11 +377,16 @@ namespace StarterAssets
         {
             if (animationEvent.animatorClipInfo.weight > 0.5f)
             {
-
-                if (AudioFootsteps != null)
+                float sfxVol = PlayerPrefs.GetFloat("CyberRakshak.Sfx", 1f);
+                
+                if (AudioFootsteps != null) {
+                    AudioFootsteps.volume = FootstepAudioVolume * sfxVol;
                     AudioFootsteps.Play();
-                if (AudioFoley != null)
+                }
+                if (AudioFoley != null) {
+                    AudioFoley.volume = FootstepAudioVolume * sfxVol;
                     AudioFoley.Play();
+                }
             }
         }
 
@@ -388,9 +394,11 @@ namespace StarterAssets
         {
             if (animationEvent.animatorClipInfo.weight > 0.5f)
             {
-                if (LandingAudio != null)
+                if (LandingAudio != null) {
+                    float sfxVol = PlayerPrefs.GetFloat("CyberRakshak.Sfx", 1f);
+                    LandingAudio.volume = FootstepAudioVolume * sfxVol;
                     LandingAudio.Play();
-
+                }
             }
         }
     }
