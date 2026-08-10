@@ -16,12 +16,28 @@ namespace CyberRakshak.Audio
             source = GetComponent<AudioSource>();
             source.loop = true;
             source.playOnAwake = false;
-            source.volume = volume;
+            
+            UpdateVolume();
 
             if (ambientLoop != null)
             {
                 source.clip = ambientLoop;
             }
+        }
+
+        private void OnEnable()
+        {
+            Runtime.SettingsOverlayController.OnSettingsChanged += UpdateVolume;
+        }
+
+        private void OnDisable()
+        {
+            Runtime.SettingsOverlayController.OnSettingsChanged -= UpdateVolume;
+        }
+
+        private void UpdateVolume()
+        {
+            source.volume = volume * PlayerPrefs.GetFloat("CyberRakshak.Music", 1f);
         }
 
         private void Start()

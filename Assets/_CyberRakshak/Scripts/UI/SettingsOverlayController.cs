@@ -14,12 +14,13 @@ namespace CyberRakshak.Runtime
         private const string SfxKey = "CyberRakshak.Sfx";
         private const string SensitivityKey = "CyberRakshak.Sensitivity";
 
+        public static event System.Action OnSettingsChanged;
+
         private void Awake()
         {
-            musicSlider.SetValueWithoutNotify(PlayerPrefs.GetFloat(MusicKey, .65f));
-            sfxSlider.SetValueWithoutNotify(PlayerPrefs.GetFloat(SfxKey, .70f));
-            sensitivitySlider.SetValueWithoutNotify(PlayerPrefs.GetFloat(SensitivityKey, .60f));
-            ApplyMusic(musicSlider.value);
+            musicSlider.SetValueWithoutNotify(PlayerPrefs.GetFloat(MusicKey, 1f));
+            sfxSlider.SetValueWithoutNotify(PlayerPrefs.GetFloat(SfxKey, 1f));
+            sensitivitySlider.SetValueWithoutNotify(PlayerPrefs.GetFloat(SensitivityKey, 1f));
         }
 
         public void Open()
@@ -34,26 +35,23 @@ namespace CyberRakshak.Runtime
 
         public void SetMusic(float value)
         {
-            ApplyMusic(value);
+            PlayerPrefs.SetFloat(MusicKey, value);
+            PlayerPrefs.Save();
+            OnSettingsChanged?.Invoke();
         }
 
         public void SetSfx(float value)
         {
             PlayerPrefs.SetFloat(SfxKey, value);
             PlayerPrefs.Save();
+            OnSettingsChanged?.Invoke();
         }
 
         public void SetSensitivity(float value)
         {
             PlayerPrefs.SetFloat(SensitivityKey, value);
             PlayerPrefs.Save();
-        }
-
-        private static void ApplyMusic(float value)
-        {
-            PlayerPrefs.SetFloat(MusicKey, value);
-            PlayerPrefs.Save();
-            AudioListener.volume = Mathf.Clamp01(value);
+            OnSettingsChanged?.Invoke();
         }
     }
 }

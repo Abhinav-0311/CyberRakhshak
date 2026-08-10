@@ -8,9 +8,11 @@ namespace CyberRakshak.Runtime
         [SerializeField] private AudioClip music;
         [Range(0f, 1f)] [SerializeField] private float volume = 0.58f;
 
+        private AudioSource source;
+
         private void Awake()
         {
-            var source = GetComponent<AudioSource>();
+            source = GetComponent<AudioSource>();
             source.playOnAwake = false;
             source.loop = true;
             source.spatialBlend = 0f;
@@ -20,11 +22,27 @@ namespace CyberRakshak.Runtime
             source.bypassListenerEffects = true;
             source.bypassReverbZones = true;
             source.priority = 0;
-            source.volume = volume;
             source.clip = music;
+
+            UpdateVolume();
 
             if (music != null)
                 source.Play();
+        }
+
+        private void OnEnable()
+        {
+            SettingsOverlayController.OnSettingsChanged += UpdateVolume;
+        }
+
+        private void OnDisable()
+        {
+            SettingsOverlayController.OnSettingsChanged -= UpdateVolume;
+        }
+
+        private void UpdateVolume()
+        {
+            source.volume = volume * PlayerPrefs.GetFloat("CyberRakshak.Music", 1f);
         }
     }
 }
