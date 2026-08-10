@@ -612,63 +612,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: CyberRakshak::CyberRakshak.FirewallHazard
   extinguishDelay: 2
   fireParticles: []
---- !u!1001 &1280061303
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7593275864237013370, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
-      propertyPath: m_Name
-      value: Aditya
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
 --- !u!1001 &1556589896
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -850,6 +793,63 @@ MonoBehaviour:
   m_EditorClassIdentifier: CyberRakshak::CyberRakshak.EnemyStompTrigger
   parentEnemy: {fileID: 0}
   bounceForce: 10
+--- !u!1001 &1773846625
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6747308586734643231, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7593275864237013370, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
+      propertyPath: m_Name
+      value: Aditya
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 360fa24da4d71c84c81974dba10a0d3f, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -859,4 +859,4 @@ SceneRoots:
   - {fileID: 1556589896}
   - {fileID: 803553748}
   - {fileID: 1129668816}
-  - {fileID: 1280061303}
+  - {fileID: 1773846625}
