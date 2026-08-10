@@ -8,6 +8,10 @@ namespace CyberRakshak
         public float moveSpeed = 2f;
         public float patrolDistance = 5f;
 
+        [Header("Animation Settings")]
+        public string runStateName = "Run";
+        public string dieStateName = "Die"; // Note: SpaceMan might not have a Die state, but we'll try to play it anyway.
+
         private Vector3 startPos;
         private bool movingRight = true;
         private bool isDead = false;
@@ -49,11 +53,10 @@ namespace CyberRakshak
                 }
             }
 
-            if (animator != null)
+            if (animator != null && !string.IsNullOrEmpty(runStateName))
             {
-                // Play walking animation if Space Man has one. 
-                // We'll set a generic "Speed" float assuming standard humanoid setups, or simply let default walk play.
-                animator.SetFloat("Speed", moveSpeed);
+                // Play walking/running animation state directly
+                animator.Play(runStateName);
             }
         }
 
@@ -64,10 +67,10 @@ namespace CyberRakshak
 
             Debug.Log("Enemy Stomped!");
             
-            if (animator != null)
+            if (animator != null && !string.IsNullOrEmpty(dieStateName))
             {
                 // Try to play a death animation or fall over.
-                animator.SetTrigger("Die");
+                animator.Play(dieStateName);
             }
             
             // Disable colliders so it no longer blocks or hurts player
