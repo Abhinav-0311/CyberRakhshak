@@ -43,3 +43,5 @@ Recordings/
 Screenshots/
 Captures/
 
+# Unity CLI generated reports
+test-results.xml
