@@ -86,8 +86,14 @@ private void Update()
             AnimateVisual();
         }
 
-private void LateUpdate()
+        private void LateUpdate()
         {
+        }
+
+        /// <summary>Used by the platformer encounter after a successful head stomp.</summary>
+        public void Bounce(float upwardVelocity)
+        {
+            verticalVelocity.y = Mathf.Max(verticalVelocity.y, upwardVelocity);
         }
 
         private static Vector3 ReadInput()
