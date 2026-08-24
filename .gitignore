@@ -45,3 +45,7 @@ Captures/
 
 # Unity CLI generated reports
 test-results.xml
+
+# Unity Test Framework temporary bootstrap scenes
+Assets/InitTestScene*.unity
+Assets/InitTestScene*.unity.meta
