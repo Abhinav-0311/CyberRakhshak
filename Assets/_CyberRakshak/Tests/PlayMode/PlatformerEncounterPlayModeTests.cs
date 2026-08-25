@@ -33,6 +33,8 @@ namespace CyberRakshak.Tests
             GameObject playerObject = new GameObject("StompPlayer");
             playerObject.transform.position = new Vector3(0f, 1.25f, 40f);
             CharacterController playerCollider = playerObject.AddComponent<CharacterController>();
+            playerCollider.center = new Vector3(0f, .93f, 0f);
+            playerCollider.height = 1.8f;
             playerObject.AddComponent<PlayerHealth>();
 
             yield return null;

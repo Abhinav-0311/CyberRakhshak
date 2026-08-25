@@ -1,5 +1,5 @@
+using System.Collections;
 using CyberRakshak.Runtime;
-using StarterAssets;
 using UnityEngine;
 namespace CyberRakshak.Platformer
 {
@@ -94,10 +94,24 @@ namespace CyberRakshak.Platformer
             if (defeated) return;
             defeated = true;
             PlatformerSfx.PlayBlop(transform.position);
-            root.GetComponent<ThirdPersonController>()?.ApplyVerticalImpulse(bounceVelocity);
+            StartCoroutine(BouncePlayer(root));
             foreach (var c in GetComponentsInChildren<Collider>()) c.enabled = false;
             transform.localScale *= .25f;
             Destroy(gameObject, .35f);
+        }
+        IEnumerator BouncePlayer(Transform root)
+        {
+            CharacterController controller = root.GetComponent<CharacterController>();
+            if (controller == null) yield break;
+            float velocity = bounceVelocity;
+            const float gravity = -25f;
+            const float duration = .22f;
+            for (float elapsed = 0f; elapsed < duration; elapsed += Time.deltaTime)
+            {
+                controller.Move(Vector3.up * velocity * Time.deltaTime);
+                velocity += gravity * Time.deltaTime;
+                yield return null;
+            }
         }
     }
 }
