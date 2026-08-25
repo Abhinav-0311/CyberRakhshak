@@ -45,7 +45,7 @@ public class JumpBoosterPad : MonoBehaviour
 
     IEnumerator Bounce(Transform player)
     {
-        Vector3 startPos = player.position;
+        float startPos = player.position.y; //y coordinate position
 
         float t = 0f;
 
@@ -58,12 +58,12 @@ public class JumpBoosterPad : MonoBehaviour
             // Smooth parabola: 0 → 1 → 0
             float height = 4f * normalized * (1f - normalized);
 
-            player.position = startPos + Vector3.up * (height * bounceHeight);
+            player.position = new Vector3(player.position.x,startPos,player.position.z)+ Vector3.up * (height * bounceHeight);
 
             yield return null;
         }
 
         // Ensure player lands exactly back where the bounce started
-        player.position = startPos;
+        player.position = new Vector3(player.position.x, startPos, player.position.z);
     }
 }
