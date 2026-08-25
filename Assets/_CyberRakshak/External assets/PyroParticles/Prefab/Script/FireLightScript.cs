@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 namespace DigitalRuby.PyroParticles
@@ -22,6 +22,8 @@ namespace DigitalRuby.PyroParticles
         private float seed;
         private FireBaseScript fireBaseScript;
         private float baseY;
+        public GameObject Waterfall;
+        private bool HasWater= false ;
 
         private void Awake()
         {
@@ -45,7 +47,7 @@ namespace DigitalRuby.PyroParticles
                 return;
             }
 
-            if (seed != 0)
+            if (seed != 0 && !HasWater)
             {
                 // we have a random movement seed, set up with random movement
                 bool setIntensity = true;
@@ -86,6 +88,17 @@ namespace DigitalRuby.PyroParticles
             {
                 // fade in
                 firePointLight.intensity = Mathf.Lerp(0.0f, lightIntensity, fireBaseScript.StartPercent);
+            }
+            WaterOn();
+           
+        }
+        private void WaterOn()
+        {
+            if (Waterfall.activeSelf)
+            {
+                HasWater = true;
+                fireBaseScript.Stop();
+                firePointLight.intensity = Mathf.Lerp(firePointLight.intensity, 0.0f, fireBaseScript.StopPercent);
             }
         }
     }
