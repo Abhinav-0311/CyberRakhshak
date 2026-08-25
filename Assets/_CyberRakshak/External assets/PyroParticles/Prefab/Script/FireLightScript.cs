@@ -94,11 +94,16 @@ namespace DigitalRuby.PyroParticles
         }
         private void WaterOn()
         {
-            if (Waterfall.activeSelf)
+            // Waterfall is optional on the stock fire prefab. Level 1 uses the
+            // fire wall without one, so do not throw when it is unassigned.
+            if (Waterfall != null && Waterfall.activeSelf)
             {
                 HasWater = true;
-                fireBaseScript.Stop();
-                firePointLight.intensity = Mathf.Lerp(firePointLight.intensity, 0.0f, fireBaseScript.StopPercent);
+                if (fireBaseScript != null)
+                {
+                    fireBaseScript.Stop();
+                    firePointLight.intensity = Mathf.Lerp(firePointLight.intensity, 0.0f, fireBaseScript.StopPercent);
+                }
             }
         }
     }
