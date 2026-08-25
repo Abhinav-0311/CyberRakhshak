@@ -5,9 +5,11 @@ namespace CyberRakshak.Platformer
     [RequireComponent(typeof(CapsuleCollider), typeof(Rigidbody))]
     public sealed class PlatformerEnemy : MonoBehaviour
     {
-        [SerializeField] float roamSpeed = 2.25f, roamRadius = 6f, stompHeight = 1.55f, bounceVelocity = 10f;
+        [SerializeField] float roamSpeed = 2.25f, roamRadius = 6f, stompFootClearance = .2f, bounceVelocity = 10f;
         [SerializeField] int contactDamage = 34;
         Vector3 spawnPosition, roamTarget; Rigidbody body; CapsuleCollider hitbox; float nextTargetTime; bool defeated;
+
+        public bool IsDefeated => defeated;
         void Awake()
         {
             hitbox = GetComponent<CapsuleCollider>();
@@ -28,20 +30,27 @@ namespace CyberRakshak.Platformer
         }
         void OnTriggerStay(Collider other)
         {
-            if (defeated) return;
-            var health = other.GetComponentInParent<PlayerHealth>(); if (health == null) return;
+            TryResolvePlayerContact(other);
+        }
+
+        /// <summary>Resolves one player/enemy overlap. Returns true only for a successful stomp.</summary>
+        public bool TryResolvePlayerContact(Collider other)
+        {
+            if (defeated) return false;
+            var health = other.GetComponentInParent<PlayerHealth>(); if (health == null) return false;
             var player = other.GetComponentInParent<AdiPrototypeController>();
-            // CharacterController can report grounded before its velocity updates,
-            // so a descending-velocity check makes legitimate head landings miss.
-            // The controller root is at the player's feet; it must be above the
-            // enemy's upper body for a platformer-style stomp.
-            float headHeight = hitbox != null ? hitbox.bounds.center.y + hitbox.bounds.extents.y * 0.55f : transform.position.y + stompHeight;
-            if (player != null && player.transform.position.y >= headHeight)
+            // The SpaceMan visual and trigger are intentionally scaled up. Using the
+            // trigger's world top makes the old stomp height unreachable by Adi's
+            // 1.45-unit jump, so use the player's feet against a small authored
+            // plane just above the enemy's root instead.
+            float stompPlane = transform.position.y + stompFootClearance;
+            if (player != null && player.transform.position.y >= stompPlane)
             {
-                Defeat(other.transform.root);
-                return;
+                Defeat(player.transform);
+                return true;
             }
             health.TakeHit(contactDamage);
+            return false;
         }
         void PickTarget()
         {

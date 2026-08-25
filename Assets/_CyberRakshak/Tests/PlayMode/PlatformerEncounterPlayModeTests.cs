@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Linq;
 using CyberRakshak.Platformer;
+using CyberRakshak.Runtime;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -20,6 +21,29 @@ namespace CyberRakshak.Tests
             Assert.That(Object.FindObjectsByType<PlatformerEnemy>(FindObjectsSortMode.None).Length, Is.EqualTo(4));
             Assert.That(GameObject.Find("PlayerArmature")?.GetComponent<PlayerHealth>(), Is.Not.Null);
             Assert.That(Object.FindFirstObjectByType<PlatformerHud>(), Is.Not.Null);
+        }
+
+        [UnityTest]
+        public IEnumerator Spaceman_StompFromAdiJumpHeight_DefeatsEnemy()
+        {
+            GameObject enemyObject = new GameObject("StompTarget");
+            enemyObject.transform.position = new Vector3(0f, 1f, 40f);
+            PlatformerEnemy enemy = enemyObject.AddComponent<PlatformerEnemy>();
+
+            GameObject playerObject = new GameObject("StompPlayer");
+            playerObject.transform.position = new Vector3(0f, 1.25f, 40f);
+            CharacterController playerCollider = playerObject.AddComponent<CharacterController>();
+            playerObject.AddComponent<PlayerHealth>();
+            playerObject.AddComponent<AdiPrototypeController>();
+
+            yield return null;
+
+            Assert.That(enemy.TryResolvePlayerContact(playerCollider), Is.True);
+            Assert.That(enemy.IsDefeated, Is.True);
+
+            yield return new WaitForSeconds(0.4f);
+            Assert.That(enemyObject == null, Is.True);
+            Object.Destroy(playerObject);
         }
     }
 }
