@@ -80,11 +80,13 @@ namespace CyberRakshak.Editor
             // Move from the prop toward the runway, leaving the visual spawn prop intact.
             float towardRunway = prop.position.x < 0f ? 1f : -1f;
             Vector3 enemyPosition = prop.position + new Vector3(towardRunway * 2.4f, 0f, 0f);
+            enemyPosition.x = Mathf.Clamp(enemyPosition.x, -7.5f, 7.5f);
+            enemyPosition.z = Mathf.Clamp(enemyPosition.z, 35f, 65f);
             GameObject enemy = (GameObject)PrefabUtility.InstantiatePrefab(spaceManPrefab, encounter);
             enemy.name = $"FirewallSpaceMan_{prop.name}";
             enemy.transform.position = enemyPosition;
             enemy.transform.rotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
-            enemy.transform.localScale = Vector3.one * 5f;
+            enemy.transform.localScale = Vector3.one * 4f;
 
             CapsuleCollider hitbox = enemy.GetComponent<CapsuleCollider>();
             if (hitbox == null)
@@ -103,8 +105,8 @@ namespace CyberRakshak.Editor
                 body = enemy.AddComponent<Rigidbody>();
             }
 
-            body.isKinematic = false;
-            body.useGravity = true;
+            body.isKinematic = true;
+            body.useGravity = false;
             body.constraints = RigidbodyConstraints.FreezeRotation;
             enemy.AddComponent<PlatformerEnemy>();
         }

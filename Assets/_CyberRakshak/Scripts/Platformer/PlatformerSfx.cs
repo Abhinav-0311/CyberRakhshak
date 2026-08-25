@@ -22,7 +22,13 @@ namespace CyberRakshak.Platformer
             }
 
             clip.SetData(data, 0);
-            AudioSource.PlayClipAtPoint(clip, position, 0.8f);
+            GameObject emitter = new GameObject("EnemyBlopSfx");
+            AudioSource source = emitter.AddComponent<AudioSource>();
+            source.clip = clip;
+            source.spatialBlend = 0f;
+            source.volume = 0.9f;
+            source.Play();
+            Object.Destroy(emitter, duration + 0.05f);
         }
     }
 }
