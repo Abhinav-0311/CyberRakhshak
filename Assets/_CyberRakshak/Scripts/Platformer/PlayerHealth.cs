@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CyberRakshak.Platformer
 {
@@ -14,6 +15,15 @@ namespace CyberRakshak.Platformer
         public bool IsDefeated => CurrentHealth <= 0;
 
         private float nextDamageTime;
+        private bool restarting;
+
+        private void Update()
+        {
+            if (!restarting && transform.position.y < -8f)
+            {
+                RestartLevel();
+            }
+        }
 
         public bool TakeHit(int damage)
         {
@@ -26,7 +36,22 @@ namespace CyberRakshak.Platformer
             nextDamageTime = Time.time + contactInvulnerabilitySeconds;
             PlatformerHud.Instance?.SetHealth(CurrentHealth, MaxHealth);
             Debug.Log($"Firewall contact: -{damage} HP. Remaining health: {CurrentHealth}.");
+            if (CurrentHealth == 0)
+            {
+                RestartLevel();
+            }
             return true;
+        }
+
+        private void RestartLevel()
+        {
+            if (restarting)
+            {
+                return;
+            }
+
+            restarting = true;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
     }
 }

@@ -1,89 +1,36 @@
 using CyberRakshak.Runtime;
 using UnityEngine;
-
 namespace CyberRakshak.Platformer
 {
-    /// <summary>A compact patrol enemy: stomp its head from above, or take firewall contact damage.</summary>
-    [RequireComponent(typeof(CapsuleCollider))]
+    [RequireComponent(typeof(CapsuleCollider), typeof(Rigidbody))]
     public sealed class PlatformerEnemy : MonoBehaviour
     {
-        [SerializeField] private float patrolSpeed = 1.25f;
-        [SerializeField] private float patrolDistance = 2.25f;
-        [SerializeField] private float stompHeight = 1.05f;
-        [SerializeField] private int contactDamage = 34;
-        [SerializeField] private float bounceVelocity = 10f;
-
-        private Vector3 spawnPosition;
-        private Vector3 patrolAxis;
-        private bool movingForward = true;
-        private bool defeated;
-
-        private void Awake()
+        [SerializeField] float roamSpeed = 2.25f, roamRadius = 6f, stompHeight = 1.55f, bounceVelocity = 10f;
+        [SerializeField] int contactDamage = 34;
+        Vector3 spawnPosition, roamTarget; Rigidbody body; float nextTargetTime; bool defeated;
+        void Awake() { spawnPosition = transform.position; body = GetComponent<Rigidbody>(); PickTarget(); }
+        void FixedUpdate()
         {
-            spawnPosition = transform.position;
-            patrolAxis = transform.forward.sqrMagnitude > 0.001f ? transform.forward.normalized : Vector3.forward;
+            if (defeated) return;
+            if (transform.position.y < -8f) { Destroy(gameObject); return; }
+            // The shared Scale 5 model starts above the runway; use a grounded range that
+            // reaches the plane without allowing edge-of-runway enemies to hover.
+            if (!Physics.Raycast(transform.position + Vector3.up * .5f, Vector3.down, 4f, ~0, QueryTriggerInteraction.Ignore)) return;
+            if (Time.time >= nextTargetTime || Vector3.Distance(transform.position, roamTarget) < .35f) PickTarget();
+            Vector3 direction = roamTarget - transform.position; direction.y = 0f;
+            if (direction.sqrMagnitude < .01f) return;
+            direction.Normalize(); body.MovePosition(body.position + direction * roamSpeed * Time.fixedDeltaTime);
+            body.MoveRotation(Quaternion.Slerp(body.rotation, Quaternion.LookRotation(direction, Vector3.up), 10f * Time.fixedDeltaTime));
         }
-
-        private void Update()
+        void OnTriggerStay(Collider other)
         {
-            if (defeated)
-            {
-                return;
-            }
-
-            float direction = movingForward ? 1f : -1f;
-            transform.position += patrolAxis * (direction * patrolSpeed * Time.deltaTime);
-            transform.rotation = Quaternion.LookRotation(patrolAxis * direction, Vector3.up);
-
-            if (Vector3.Distance(spawnPosition, transform.position) >= patrolDistance)
-            {
-                movingForward = !movingForward;
-            }
-        }
-
-        private void OnTriggerEnter(Collider other)
-        {
-            if (defeated)
-            {
-                return;
-            }
-
-            PlayerHealth health = other.GetComponentInParent<PlayerHealth>();
-            if (health == null)
-            {
-                return;
-            }
-
-            // A stomp requires the player's collider bottom to be above the enemy's head zone.
-            if (other.bounds.min.y >= transform.position.y + stompHeight)
-            {
-                Defeat(other.transform.root);
-                return;
-            }
-
+            if (defeated) return;
+            var health = other.GetComponentInParent<PlayerHealth>(); if (health == null) return;
+            var player = other.GetComponentInParent<AdiPrototypeController>();
+            if (player != null && player.IsDescending && other.bounds.min.y >= transform.position.y + stompHeight) { Defeat(other.transform.root); return; }
             health.TakeHit(contactDamage);
         }
-
-        private void Defeat(Transform playerRoot)
-        {
-            if (defeated)
-            {
-                return;
-            }
-
-            defeated = true;
-            PlatformerSfx.PlayBlop(transform.position);
-
-            AdiPrototypeController controller = playerRoot.GetComponent<AdiPrototypeController>();
-            controller?.Bounce(bounceVelocity);
-
-            foreach (Collider collider in GetComponentsInChildren<Collider>())
-            {
-                collider.enabled = false;
-            }
-
-            transform.localScale *= 0.25f;
-            Destroy(gameObject, 0.35f);
-        }
+        void PickTarget() { Vector2 point = Random.insideUnitCircle * roamRadius; roamTarget = spawnPosition + new Vector3(point.x, 0f, point.y); nextTargetTime = Time.time + Random.Range(1.1f, 2.4f); }
+        void Defeat(Transform root) { if (defeated) return; defeated = true; PlatformerSfx.PlayBlop(transform.position); root.GetComponent<AdiPrototypeController>()?.Bounce(bounceVelocity); foreach (var c in GetComponentsInChildren<Collider>()) c.enabled = false; transform.localScale *= .25f; Destroy(gameObject, .35f); }
     }
 }
