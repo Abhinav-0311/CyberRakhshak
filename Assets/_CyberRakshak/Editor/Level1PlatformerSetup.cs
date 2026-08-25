@@ -11,6 +11,7 @@ namespace CyberRakshak.Editor
     {
         private const string ScenePath = "Assets/_CyberRakshak/Scenes/Game_Level01.unity";
         private const string SpaceManPrefabPath = "Assets/_CyberRakshak/FreeAnimatedSpaceMan/Prefab/space_man_model.prefab";
+        private const string FirewallPrefabPath = "Assets/_CyberRakshak/External assets/PyroParticles/Prefab/Prefab/WallOfFire.prefab";
 
         [MenuItem("CyberRakshak/Report Level 1 Prop Positions")]
         public static void ReportLevel1PropPositions()
@@ -62,6 +63,8 @@ namespace CyberRakshak.Editor
                 CreateSpawnAndEnemy(encounter.transform, prop.transform, spaceManPrefab);
             }
 
+            CreateFirewallBlocker(encounter.transform);
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
@@ -81,7 +84,7 @@ namespace CyberRakshak.Editor
             enemy.name = $"FirewallSpaceMan_{prop.name}";
             enemy.transform.position = enemyPosition;
             enemy.transform.rotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
-            enemy.transform.localScale = Vector3.one * 0.55f;
+            enemy.transform.localScale = Vector3.one * 5f;
 
             CapsuleCollider hitbox = enemy.GetComponent<CapsuleCollider>();
             if (hitbox == null)
@@ -89,9 +92,9 @@ namespace CyberRakshak.Editor
                 hitbox = enemy.AddComponent<CapsuleCollider>();
             }
 
-            hitbox.center = new Vector3(0f, 1.0f, 0f);
-            hitbox.radius = 0.42f;
-            hitbox.height = 2.0f;
+            hitbox.center = Vector3.zero;
+            hitbox.radius = 0.24f;
+            hitbox.height = 0.76f;
             hitbox.isTrigger = true;
 
             Rigidbody body = enemy.GetComponent<Rigidbody>();
@@ -100,9 +103,33 @@ namespace CyberRakshak.Editor
                 body = enemy.AddComponent<Rigidbody>();
             }
 
-            body.isKinematic = true;
-            body.useGravity = false;
+            body.isKinematic = false;
+            body.useGravity = true;
+            body.constraints = RigidbodyConstraints.FreezeRotation;
             enemy.AddComponent<PlatformerEnemy>();
+        }
+
+        private static void CreateFirewallBlocker(Transform encounter)
+        {
+            GameObject yellowStructure = GameObject.Find("TrainingGround (3)");
+            GameObject firewallPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(FirewallPrefabPath);
+            if (yellowStructure == null || firewallPrefab == null)
+                throw new System.InvalidOperationException("Level 1 firewall source or yellow structure is missing.");
+
+            GameObject blocker = new GameObject("FirewallBlocker");
+            blocker.transform.SetParent(encounter, true);
+            blocker.transform.position = yellowStructure.transform.position + new Vector3(0f, 0f, -5.2f);
+            blocker.transform.rotation = Quaternion.identity;
+
+            GameObject fire = (GameObject)PrefabUtility.InstantiatePrefab(firewallPrefab, blocker.transform);
+            fire.name = "WallOfFire_Hazard";
+            fire.transform.localPosition = Vector3.zero;
+            fire.transform.localRotation = Quaternion.identity;
+            fire.transform.localScale = new Vector3(12f, 1.5f, 1f);
+
+            BoxCollider wallCollider = blocker.AddComponent<BoxCollider>();
+            wallCollider.center = new Vector3(0f, 1.1f, 0f);
+            wallCollider.size = new Vector3(30f, 2.2f, 0.8f);
         }
     }
 }

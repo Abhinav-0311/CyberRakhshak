@@ -36,7 +36,6 @@ namespace CyberRakshak.Platformer
             }
 
             Instance = this;
-            DontDestroyOnLoad(gameObject);
             Build();
             SetHealth(PlayerHealth.MaxHealth, PlayerHealth.MaxHealth);
         }

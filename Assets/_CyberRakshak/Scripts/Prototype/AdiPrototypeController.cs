@@ -24,6 +24,8 @@ namespace CyberRakshak.Runtime
 
         private Animator animator;
 
+        public bool IsDescending => verticalVelocity.y < -0.25f;
+
         private void Awake()
         {
             controller = GetComponent<CharacterController>();
