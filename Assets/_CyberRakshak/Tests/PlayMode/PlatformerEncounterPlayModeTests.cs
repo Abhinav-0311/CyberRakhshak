@@ -24,7 +24,7 @@ namespace CyberRakshak.Tests
         }
 
         [UnityTest]
-        public IEnumerator Spaceman_StompFromAdiJumpHeight_DefeatsEnemy()
+        public IEnumerator Spaceman_StompFromStarterAssetsFeet_DefeatsEnemy()
         {
             GameObject enemyObject = new GameObject("StompTarget");
             enemyObject.transform.position = new Vector3(0f, 1f, 40f);
@@ -34,7 +34,6 @@ namespace CyberRakshak.Tests
             playerObject.transform.position = new Vector3(0f, 1.25f, 40f);
             CharacterController playerCollider = playerObject.AddComponent<CharacterController>();
             playerObject.AddComponent<PlayerHealth>();
-            playerObject.AddComponent<AdiPrototypeController>();
 
             yield return null;
 

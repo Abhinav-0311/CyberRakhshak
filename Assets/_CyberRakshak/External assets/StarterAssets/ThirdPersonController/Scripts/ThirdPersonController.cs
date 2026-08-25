@@ -178,6 +178,18 @@ namespace StarterAssets
 
         private bool _hasAnimator;
 
+        /// <summary>Applies a one-shot upward velocity from Level 1 platformer interactions.</summary>
+        public void ApplyVerticalImpulse(float upwardVelocity)
+        {
+            _verticalVelocity = Mathf.Max(_verticalVelocity, upwardVelocity);
+            Grounded = false;
+            if (_hasAnimator)
+            {
+                _animator.SetBool(_animIDJump, true);
+                _animator.SetBool(_animIDFreeFall, false);
+            }
+        }
+
         // ============================================================
         // INPUT DEVICE
         // ============================================================
