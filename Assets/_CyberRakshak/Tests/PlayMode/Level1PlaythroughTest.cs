@@ -38,7 +38,7 @@ namespace CyberRakshak.Tests
             }
 
             // Count Geometry
-            var renderers = Object.FindObjectsOfType<Renderer>();
+            var renderers = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
             int cubes = 0, walls = 0, gates = 0, keys = 0;
             foreach(var r in renderers) {
                 string n = r.gameObject.name.ToLower();
@@ -50,7 +50,7 @@ namespace CyberRakshak.Tests
             report += $"- Geometry: {walls} Walls, {gates} Gates, {keys} Keys, {cubes} Cubes.\n";
 
             // Count Triggers
-            var colliders = Object.FindObjectsOfType<Collider>();
+            var colliders = Object.FindObjectsByType<Collider>(FindObjectsSortMode.None);
             int triggers = colliders.Count(c => c.isTrigger);
             report += $"- Triggers: {triggers} trigger volumes.\n";
 
