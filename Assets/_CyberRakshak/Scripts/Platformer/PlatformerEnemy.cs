@@ -59,10 +59,10 @@ namespace CyberRakshak.Platformer
             // PlayerArmature uses Starter Assets' CharacterController. Do not depend
             // on the unused AdiPrototypeController: that made every overlap damage
             // the player even when landing directly on a SpaceMan.
-            // Use the visible body/collider centre instead of the prefab pivot.
-            // This makes a normal side overlap damage the player, while a jump
-            // whose feet clear the SpaceMan body counts as a stomp.
-            float stompPlane = hitbox.bounds.center.y + stompFootClearance;
+            // The imported body is taller than a normal platformer obstacle.
+            // Its upper body is the stomp zone: a ground-level side overlap still
+            // damages the player, while a regular jump can reliably clear it.
+            float stompPlane = hitbox.bounds.center.y - hitbox.bounds.extents.y * .25f + stompFootClearance;
             float playerFeet = controller != null ? controller.bounds.min.y : health.transform.position.y;
             if (playerFeet >= stompPlane)
             {
