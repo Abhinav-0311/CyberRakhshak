@@ -8,7 +8,7 @@ namespace CyberRakshak.Platformer
     {
         [SerializeField] float roamSpeed = 2.25f, roamRadius = 6f, stompFootClearance = .12f, bounceVelocity = 10f, enemyScale = 4f;
         [SerializeField] int contactDamage = 34;
-        Vector3 spawnPosition, roamTarget; Rigidbody body; CapsuleCollider hitbox, contactTrigger; float nextTargetTime; bool defeated;
+        Vector3 spawnPosition, roamTarget; Rigidbody body; CapsuleCollider hitbox; float nextTargetTime; bool defeated;
 
         public bool IsDefeated => defeated;
         void Awake()
@@ -21,7 +21,7 @@ namespace CyberRakshak.Platformer
             spawnPosition = ClampToGuardCorridor(transform.position);
             transform.position = spawnPosition;
             SnapVisualToGround();
-            ConfigureColliders();
+            hitbox.isTrigger = false;
             spawnPosition = transform.position;
             body = GetComponent<Rigidbody>();
             PickTarget();
@@ -46,11 +46,6 @@ namespace CyberRakshak.Platformer
             body.MovePosition(nextPosition);
             body.MoveRotation(Quaternion.Slerp(body.rotation, Quaternion.LookRotation(direction, Vector3.up), 10f * Time.fixedDeltaTime));
         }
-        void OnTriggerStay(Collider other)
-        {
-            TryResolvePlayerContact(other);
-        }
-
         /// <summary>Resolves one player/enemy overlap. Returns true only for a successful stomp.</summary>
         public bool TryResolvePlayerContact(Collider other)
         {
@@ -120,8 +115,8 @@ namespace CyberRakshak.Platformer
             transform.position += Vector3.up * (highestGround + .02f - visualBounds.min.y);
             if (!TryGetVisualBounds(out visualBounds)) return;
 
-            // Keep the trigger where the player sees the SpaceMan rather than at
-            // the imported asset's arbitrary root pivot.
+            // Keep the solid body collider where the player sees the SpaceMan,
+            // rather than at the imported asset's arbitrary root pivot.
             hitbox.center = transform.InverseTransformPoint(visualBounds.center);
             float scaleY = Mathf.Max(.001f, Mathf.Abs(transform.lossyScale.y));
             float scaleXZ = Mathf.Max(.001f, Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.z)));
@@ -141,30 +136,6 @@ namespace CyberRakshak.Platformer
                 else bounds.Encapsulate(renderer.bounds);
             }
             return found;
-        }
-        void ConfigureColliders()
-        {
-            // A trigger alone lets a CharacterController walk through the enemy.
-            // Keep the aligned root capsule solid, then use a slightly larger
-            // child trigger to report reliable side/stomp contacts.
-            hitbox.isTrigger = false;
-            Transform triggerTransform = transform.Find("ContactTrigger");
-            if (triggerTransform == null)
-            {
-                GameObject triggerObject = new GameObject("ContactTrigger");
-                triggerTransform = triggerObject.transform;
-                triggerTransform.SetParent(transform, false);
-                contactTrigger = triggerObject.AddComponent<CapsuleCollider>();
-            }
-            else contactTrigger = triggerTransform.GetComponent<CapsuleCollider>() ?? triggerTransform.gameObject.AddComponent<CapsuleCollider>();
-
-            contactTrigger.isTrigger = true;
-            contactTrigger.center = hitbox.center;
-            contactTrigger.radius = hitbox.radius * 1.12f;
-            contactTrigger.height = Mathf.Max(hitbox.height * 1.08f, contactTrigger.radius * 2.01f);
-            contactTrigger.direction = hitbox.direction;
-            PlatformerEnemyContact contact = triggerTransform.GetComponent<PlatformerEnemyContact>() ?? triggerTransform.gameObject.AddComponent<PlatformerEnemyContact>();
-            contact.Configure(this);
         }
         void Defeat(Transform root)
         {
