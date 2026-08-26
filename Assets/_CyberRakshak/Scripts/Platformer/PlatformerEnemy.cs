@@ -60,10 +60,10 @@ namespace CyberRakshak.Platformer
             // PlayerArmature uses Starter Assets' CharacterController. Do not depend
             // on the unused AdiPrototypeController: that made every overlap damage
             // the player even when landing directly on a SpaceMan.
-            // The imported body is taller than a normal platformer obstacle.
-            // Its upper body is the stomp zone: a ground-level side overlap still
-            // damages the player, while a regular jump can reliably clear it.
-            float stompPlane = hitbox.bounds.center.y - hitbox.bounds.extents.y * .25f + stompFootClearance;
+            // Deliberately forgiving platformer stomp zone. Ground-level side
+            // contact stays below this line, while any ordinary jump over the
+            // SpaceMan's lower upper-body registers as a defeat.
+            float stompPlane = hitbox.bounds.min.y + Mathf.Min(.38f, hitbox.bounds.size.y * .25f) + stompFootClearance;
             float playerFeet = controller != null ? controller.bounds.min.y : health.transform.position.y;
             if (playerFeet >= stompPlane)
             {
@@ -163,6 +163,8 @@ namespace CyberRakshak.Platformer
             contactTrigger.radius = hitbox.radius * 1.12f;
             contactTrigger.height = Mathf.Max(hitbox.height * 1.08f, contactTrigger.radius * 2.01f);
             contactTrigger.direction = hitbox.direction;
+            PlatformerEnemyContact contact = triggerTransform.GetComponent<PlatformerEnemyContact>() ?? triggerTransform.gameObject.AddComponent<PlatformerEnemyContact>();
+            contact.Configure(this);
         }
         void Defeat(Transform root)
         {
