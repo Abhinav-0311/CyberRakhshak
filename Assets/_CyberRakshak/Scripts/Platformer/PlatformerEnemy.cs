@@ -8,7 +8,7 @@ namespace CyberRakshak.Platformer
     {
         [SerializeField] float roamSpeed = 2.25f, roamRadius = 6f, stompFootClearance = .12f, bounceVelocity = 10f, enemyScale = 4f;
         [SerializeField] int contactDamage = 34;
-        Vector3 spawnPosition, roamTarget; Rigidbody body; CapsuleCollider hitbox; float nextTargetTime; bool defeated;
+        Vector3 spawnPosition, roamTarget; Rigidbody body; CapsuleCollider hitbox, contactTrigger; float nextTargetTime; bool defeated;
 
         public bool IsDefeated => defeated;
         void Awake()
@@ -21,6 +21,7 @@ namespace CyberRakshak.Platformer
             spawnPosition = ClampToGuardCorridor(transform.position);
             transform.position = spawnPosition;
             SnapVisualToGround();
+            ConfigureColliders();
             spawnPosition = transform.position;
             body = GetComponent<Rigidbody>();
             PickTarget();
@@ -140,6 +141,28 @@ namespace CyberRakshak.Platformer
                 else bounds.Encapsulate(renderer.bounds);
             }
             return found;
+        }
+        void ConfigureColliders()
+        {
+            // A trigger alone lets a CharacterController walk through the enemy.
+            // Keep the aligned root capsule solid, then use a slightly larger
+            // child trigger to report reliable side/stomp contacts.
+            hitbox.isTrigger = false;
+            Transform triggerTransform = transform.Find("ContactTrigger");
+            if (triggerTransform == null)
+            {
+                GameObject triggerObject = new GameObject("ContactTrigger");
+                triggerTransform = triggerObject.transform;
+                triggerTransform.SetParent(transform, false);
+                contactTrigger = triggerObject.AddComponent<CapsuleCollider>();
+            }
+            else contactTrigger = triggerTransform.GetComponent<CapsuleCollider>() ?? triggerTransform.gameObject.AddComponent<CapsuleCollider>();
+
+            contactTrigger.isTrigger = true;
+            contactTrigger.center = hitbox.center;
+            contactTrigger.radius = hitbox.radius * 1.12f;
+            contactTrigger.height = Mathf.Max(hitbox.height * 1.08f, contactTrigger.radius * 2.01f);
+            contactTrigger.direction = hitbox.direction;
         }
         void Defeat(Transform root)
         {
