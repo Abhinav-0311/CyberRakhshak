@@ -6,7 +6,7 @@ namespace CyberRakshak.Platformer
     [RequireComponent(typeof(CapsuleCollider), typeof(Rigidbody))]
     public sealed class PlatformerEnemy : MonoBehaviour
     {
-        [SerializeField] float roamSpeed = 2.25f, roamRadius = 6f, stompFootClearance = .2f, bounceVelocity = 10f;
+        [SerializeField] float roamSpeed = 2.25f, roamRadius = 6f, stompFootClearance = .12f, bounceVelocity = 10f, enemyScale = 4f;
         [SerializeField] int contactDamage = 34;
         Vector3 spawnPosition, roamTarget; Rigidbody body; CapsuleCollider hitbox; float nextTargetTime; bool defeated;
 
@@ -14,8 +14,14 @@ namespace CyberRakshak.Platformer
         void Awake()
         {
             hitbox = GetComponent<CapsuleCollider>();
+            // The source prefab's mesh pivot is not at its feet. Normalising the
+            // instance scale and grounding its rendered bounds keeps every SpaceMan
+            // visibly on the Level 1 runway instead of hovering above it.
+            transform.localScale = Vector3.one * enemyScale;
             spawnPosition = ClampToGuardCorridor(transform.position);
             transform.position = spawnPosition;
+            SnapVisualToGround();
+            spawnPosition = transform.position;
             body = GetComponent<Rigidbody>();
             PickTarget();
         }
@@ -53,7 +59,10 @@ namespace CyberRakshak.Platformer
             // PlayerArmature uses Starter Assets' CharacterController. Do not depend
             // on the unused AdiPrototypeController: that made every overlap damage
             // the player even when landing directly on a SpaceMan.
-            float stompPlane = transform.position.y + stompFootClearance;
+            // Use the visible body/collider centre instead of the prefab pivot.
+            // This makes a normal side overlap damage the player, while a jump
+            // whose feet clear the SpaceMan body counts as a stomp.
+            float stompPlane = hitbox.bounds.center.y + stompFootClearance;
             float playerFeet = controller != null ? controller.bounds.min.y : health.transform.position.y;
             if (playerFeet >= stompPlane)
             {
@@ -65,13 +74,17 @@ namespace CyberRakshak.Platformer
         }
         void PickTarget()
         {
-            Vector2 point = Random.insideUnitCircle * roamRadius;
-            roamTarget = spawnPosition + new Vector3(point.x, 0f, point.y);
-            // The Level 1 barrel spawns frame the main route at Z 38-62.
-            // Keep patrols inset from every platform edge while making the
-            // route feel guarded rather than leaving the enemies stationary.
-            roamTarget = ClampToGuardCorridor(roamTarget);
-            roamTarget.y = spawnPosition.y;
+            for (int attempt = 0; attempt < 8; attempt++)
+            {
+                Vector2 point = Random.insideUnitCircle * roamRadius;
+                roamTarget = spawnPosition + new Vector3(point.x, 0f, point.y);
+                // The Level 1 barrel spawns frame the main route at Z 38-62.
+                // Keep patrols inset from every platform edge while making the
+                // route feel guarded rather than leaving the enemies stationary.
+                roamTarget = ClampToGuardCorridor(roamTarget);
+                roamTarget.y = spawnPosition.y;
+                if (HasSolidGroundBelow(roamTarget)) break;
+            }
             nextTargetTime = Time.time + Random.Range(1.1f, 2.4f);
         }
         private static Vector3 ClampToGuardCorridor(Vector3 position)
@@ -82,12 +95,51 @@ namespace CyberRakshak.Platformer
         }
         bool HasSolidGroundBelow(Vector3 position)
         {
-            RaycastHit[] hits = Physics.RaycastAll(position + Vector3.up * 2f, Vector3.down, 5f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            RaycastHit[] hits = Physics.RaycastAll(position + Vector3.up * 8f, Vector3.down, 16f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
             foreach (RaycastHit hit in hits)
             {
                 if (!hit.collider.transform.IsChildOf(transform)) return true;
             }
             return false;
+        }
+        void SnapVisualToGround()
+        {
+            if (!TryGetVisualBounds(out Bounds visualBounds)) return;
+            RaycastHit[] hits = Physics.RaycastAll(transform.position + Vector3.up * 12f, Vector3.down, 24f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            bool foundGround = false;
+            float highestGround = float.NegativeInfinity;
+            foreach (RaycastHit hit in hits)
+            {
+                if (hit.collider.transform.IsChildOf(transform) || hit.point.y <= highestGround) continue;
+                highestGround = hit.point.y;
+                foundGround = true;
+            }
+            if (!foundGround) return;
+
+            transform.position += Vector3.up * (highestGround + .02f - visualBounds.min.y);
+            if (!TryGetVisualBounds(out visualBounds)) return;
+
+            // Keep the trigger where the player sees the SpaceMan rather than at
+            // the imported asset's arbitrary root pivot.
+            hitbox.center = transform.InverseTransformPoint(visualBounds.center);
+            float scaleY = Mathf.Max(.001f, Mathf.Abs(transform.lossyScale.y));
+            float scaleXZ = Mathf.Max(.001f, Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.z)));
+            float worldRadius = Mathf.Max(.12f, Mathf.Min(visualBounds.extents.x, visualBounds.extents.z) * .55f);
+            hitbox.radius = worldRadius / scaleXZ;
+            hitbox.height = Mathf.Max(visualBounds.size.y * .85f / scaleY, hitbox.radius * 2.01f);
+        }
+        bool TryGetVisualBounds(out Bounds bounds)
+        {
+            Renderer[] renderers = GetComponentsInChildren<Renderer>();
+            bool found = false;
+            bounds = default;
+            foreach (Renderer renderer in renderers)
+            {
+                if (!renderer.enabled) continue;
+                if (!found) { bounds = renderer.bounds; found = true; }
+                else bounds.Encapsulate(renderer.bounds);
+            }
+            return found;
         }
         void Defeat(Transform root)
         {
