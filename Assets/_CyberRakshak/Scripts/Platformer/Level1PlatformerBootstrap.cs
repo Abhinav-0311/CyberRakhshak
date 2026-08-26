@@ -25,6 +25,10 @@ namespace CyberRakshak.Platformer
             {
                 player.AddComponent<PlayerHealth>();
             }
+            if (player.GetComponent<PlatformerPlayerContact>() == null)
+            {
+                player.AddComponent<PlatformerPlayerContact>();
+            }
 
             PlatformerHud.EnsureCreated();
         }
