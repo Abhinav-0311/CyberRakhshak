@@ -11,7 +11,7 @@ namespace CyberRakshak.Runtime
         private void Awake()
         {
             settingsPanel.SetActive(false);
-            continueButton.interactable = GameProgression.HasCompletedLevelOne;
+            continueButton.interactable = GameProgression.HasStartedTraining;
         }
 
         private void Update()

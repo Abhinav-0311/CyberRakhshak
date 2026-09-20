@@ -149,6 +149,7 @@ namespace StarterAssets
         // ============================================================
 
         private bool _isLeaping = false;
+        private bool _traversalOverrideActive;
 
         private float _leapTimer = 0.0f;
 
@@ -242,9 +243,19 @@ namespace StarterAssets
 
         private void Update()
         {
+            if (Time.timeScale == 0f)
+            {
+                return;
+            }
+
             _hasAnimator = TryGetComponent(out _animator);
 
             GroundedCheck();
+
+            if (_traversalOverrideActive)
+            {
+                return;
+            }
 
             // If currently leaping, handle leap movement separately
             if (_isLeaping)
@@ -265,7 +276,47 @@ namespace StarterAssets
 
         private void LateUpdate()
         {
+            if (Time.timeScale == 0f)
+            {
+                return;
+            }
+
             CameraRotation();
+        }
+
+        public bool IsTraversalOverrideActive => _traversalOverrideActive;
+
+        /// <summary>Temporarily gives a traversal object exclusive control of CharacterController movement.</summary>
+        public void BeginTraversalOverride()
+        {
+            _traversalOverrideActive = true;
+            _isLeaping = false;
+            _verticalVelocity = 0f;
+            _input.jump = false;
+        }
+
+        public void MoveTraversalOverride(Vector3 delta)
+        {
+            if (_traversalOverrideActive)
+            {
+                _controller.Move(delta);
+            }
+        }
+
+        public void EndTraversalOverride(float verticalVelocity = -2f)
+        {
+            _traversalOverrideActive = false;
+            _verticalVelocity = verticalVelocity;
+            _input.jump = false;
+        }
+
+        /// <summary>Applies a platform displacement without competing with an active launch or stomp bounce.</summary>
+        public void ApplyEnvironmentalDisplacement(Vector3 delta)
+        {
+            if (!_traversalOverrideActive)
+            {
+                _controller.Move(delta);
+            }
         }
 
         // ============================================================

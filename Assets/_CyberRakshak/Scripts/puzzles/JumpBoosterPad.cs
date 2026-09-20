@@ -1,69 +1,172 @@
 using UnityEngine;
 using System.Collections;
+using CyberRakshak.Platformer;
 
-public class JumpBoosterPad : MonoBehaviour
+/// <summary>Launches the player along the pad's forward axis without bypassing CharacterController collision.</summary>
+public sealed class JumpBoosterPad : MonoBehaviour
 {
-    [Header("Bounce Settings")]
-    public float bounceHeight = 4f;
-    public float bounceDuration = 0.6f;
+    [Header("Launch Settings")]
+    [Min(0f)] public float bounceHeight = 6f;
+    [Min(0.05f)] public float bounceDuration = 0.8f;
+    [Min(0f)] public float forwardDistance = 10f;
+    [Min(0f)] public float topTolerance = 0.55f;
+    [Min(0f)] public float landingClearance = 0.12f;
+    [Tooltip("Optional scene object name. When assigned, the pad launches toward that object instead of only forward.")]
+    public string launchTargetName;
 
-    private bool hasBounced = false;
+    private CharacterController playerController;
+    private bool hasLaunched;
+    private bool isLaunching;
 
-    void Update()
+    private void Update()
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player == null) return;
-
-        CharacterController cc = player.GetComponent<CharacterController>();
-        if (cc == null) return;
-
-        Bounds b = GetComponent<Collider>().bounds;
-        Vector3 p = player.transform.position;
-
-        // Check if player is standing on the pad area
-        bool insideXZ =
-            p.x > b.min.x && p.x < b.max.x &&
-            p.z > b.min.z && p.z < b.max.z;
-
-        bool onTop = Mathf.Abs(p.y - b.max.y) < 1.2f;
-
-        bool onPad = insideXZ && onTop && cc.isGrounded;
-
-        // Bounce only once per entry
-        if (onPad && !hasBounced)
+        if (!TryGetPlayerController(out CharacterController controller))
         {
-            hasBounced = true;
-            StartCoroutine(Bounce(player.transform));
+            return;
         }
 
-        // Reset only after player walks completely off the pad
-        if (!insideXZ)
+        Bounds padBounds = GetPadBounds();
+        Bounds playerBounds = controller.bounds;
+        Vector3 playerCenter = playerBounds.center;
+        bool insidePad = playerCenter.x >= padBounds.min.x && playerCenter.x <= padBounds.max.x &&
+                         playerCenter.z >= padBounds.min.z && playerCenter.z <= padBounds.max.z;
+        bool standingOnPad = playerBounds.min.y >= padBounds.max.y - topTolerance &&
+                             playerBounds.min.y <= padBounds.max.y + topTolerance;
+
+        if (!isLaunching && insidePad && standingOnPad && controller.isGrounded && !hasLaunched)
         {
-            hasBounced = false;
+            hasLaunched = true;
+            StartCoroutine(Launch(controller));
+        }
+
+        if (!insidePad && !isLaunching)
+        {
+            hasLaunched = false;
         }
     }
 
-    IEnumerator Bounce(Transform player)
+    private bool TryGetPlayerController(out CharacterController controller)
     {
-        float startPos = player.position.y; //y coordinate position
-
-        float t = 0f;
-
-        while (t < bounceDuration)
+        if (playerController == null)
         {
-            t += Time.deltaTime;
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                playerController = player.GetComponent<CharacterController>();
+            }
+        }
 
-            float normalized = t / bounceDuration;
+        controller = playerController;
+        return controller != null;
+    }
 
-            // Smooth parabola: 0 → 1 → 0
-            float height = 4f * normalized * (1f - normalized);
+    private Bounds GetPadBounds()
+    {
+        Collider[] colliders = GetComponentsInChildren<Collider>();
+        Bounds bounds = default;
+        bool hasBounds = false;
 
-            player.position = new Vector3(player.position.x,startPos,player.position.z)+ Vector3.up * (height * bounceHeight);
+        foreach (Collider collider in colliders)
+        {
+            if (!collider.enabled || collider.isTrigger)
+            {
+                continue;
+            }
 
+            if (!hasBounds)
+            {
+                bounds = collider.bounds;
+                hasBounds = true;
+            }
+            else
+            {
+                bounds.Encapsulate(collider.bounds);
+            }
+        }
+
+        return hasBounds ? bounds : new Bounds(transform.position, Vector3.one);
+    }
+
+    private IEnumerator Launch(CharacterController controller)
+    {
+        isLaunching = true;
+        PlatformerMotionAdapter.BeginTraversalOverride(controller);
+        Vector3 startPosition = controller.transform.position;
+        Vector3 direction = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+        if (direction.sqrMagnitude < 0.01f)
+        {
+            direction = Vector3.forward;
+        }
+
+        Transform target = FindLaunchTarget();
+        Vector3 destination = target != null
+            ? GetLandingPosition(target, startPosition)
+            : startPosition + direction * forwardDistance;
+
+        float elapsed = 0f;
+        while (elapsed < bounceDuration && controller != null)
+        {
+            elapsed += Time.deltaTime;
+            float progress = Mathf.Clamp01(elapsed / bounceDuration);
+            // Smoothstep removes the sudden start/stop that made the old launch feel mechanical.
+            float horizontalProgress = progress * progress * (3f - 2f * progress);
+            float arc = Mathf.Sin(progress * Mathf.PI);
+            Vector3 flightPosition = Vector3.Lerp(startPosition, destination, horizontalProgress) + Vector3.up * (bounceHeight * arc);
+            PlatformerMotionAdapter.MoveTraversalOverride(controller, flightPosition - controller.transform.position);
             yield return null;
         }
 
-        // Ensure player lands exactly back where the bounce started
-        player.position = new Vector3(player.position.x, startPos, player.position.z);
+        if (controller != null)
+        {
+            PlatformerMotionAdapter.EndTraversalOverride(controller);
+        }
+        isLaunching = false;
+    }
+
+    private void OnDisable()
+    {
+        if (isLaunching && playerController != null)
+        {
+            PlatformerMotionAdapter.EndTraversalOverride(playerController);
+        }
+
+        isLaunching = false;
+    }
+
+    private Vector3 GetLandingPosition(Transform target, Vector3 startPosition)
+    {
+        Collider landingSurface = FindLandingSurface(target);
+        if (landingSurface == null)
+        {
+            // A lever is not a landing surface: preserve its horizontal destination, then let the arc land naturally.
+            return new Vector3(target.position.x, startPosition.y, target.position.z);
+        }
+
+        Bounds landingBounds = landingSurface.bounds;
+        return new Vector3(landingBounds.center.x, landingBounds.max.y + landingClearance, landingBounds.center.z);
+    }
+
+    private static Collider FindLandingSurface(Transform target)
+    {
+        // Most authored pads place their real collider on a child mesh, not on the named root.
+        foreach (Collider candidate in target.GetComponentsInChildren<Collider>())
+        {
+            if (candidate.enabled && !candidate.isTrigger)
+            {
+                return candidate;
+            }
+        }
+
+        Collider ownCollider = target.GetComponent<Collider>();
+        return ownCollider != null && ownCollider.enabled && !ownCollider.isTrigger
+            ? ownCollider
+            : target.GetComponentInParent<Collider>();
+    }
+
+    private Transform FindLaunchTarget()
+    {
+        return string.IsNullOrWhiteSpace(launchTargetName)
+            ? null
+            : GameObject.Find(launchTargetName)?.transform;
     }
 }

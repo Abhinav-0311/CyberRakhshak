@@ -8,7 +8,7 @@ namespace CyberRakshak.Platformer
     {
         [SerializeField] float roamSpeed = 2.25f, roamRadius = 6f, stompFootClearance = .12f, bounceVelocity = 10f, enemyScale = 4f;
         [SerializeField] int contactDamage = 34;
-        Vector3 spawnPosition, roamTarget; Rigidbody body; CapsuleCollider hitbox; float nextTargetTime; bool defeated;
+        Vector3 spawnPosition, roamTarget; Rigidbody body; CapsuleCollider hitbox; float nextTargetTime; float groundY; bool defeated;
 
         public bool IsDefeated => defeated;
         void Awake()
@@ -91,28 +91,16 @@ namespace CyberRakshak.Platformer
         }
         bool HasSolidGroundBelow(Vector3 position)
         {
-            RaycastHit[] hits = Physics.RaycastAll(position + Vector3.up * 8f, Vector3.down, 16f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-            foreach (RaycastHit hit in hits)
-            {
-                if (!hit.collider.transform.IsChildOf(transform)) return true;
-            }
-            return false;
+            return TryGetWalkableGround(position, out RaycastHit ground) &&
+                   Mathf.Abs(ground.point.y - groundY) <= .25f;
         }
         void SnapVisualToGround()
         {
             if (!TryGetVisualBounds(out Bounds visualBounds)) return;
-            RaycastHit[] hits = Physics.RaycastAll(transform.position + Vector3.up * 12f, Vector3.down, 24f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-            bool foundGround = false;
-            float highestGround = float.NegativeInfinity;
-            foreach (RaycastHit hit in hits)
-            {
-                if (hit.collider.transform.IsChildOf(transform) || hit.point.y <= highestGround) continue;
-                highestGround = hit.point.y;
-                foundGround = true;
-            }
-            if (!foundGround) return;
+            if (!TryGetWalkableGround(transform.position, out RaycastHit ground)) return;
 
-            transform.position += Vector3.up * (highestGround + .02f - visualBounds.min.y);
+            groundY = ground.point.y;
+            transform.position += Vector3.up * (groundY + .02f - visualBounds.min.y);
             if (!TryGetVisualBounds(out visualBounds)) return;
 
             // Keep the solid body collider where the player sees the SpaceMan,
@@ -137,6 +125,38 @@ namespace CyberRakshak.Platformer
             }
             return found;
         }
+        private bool TryGetWalkableGround(Vector3 position, out RaycastHit ground)
+        {
+            RaycastHit[] hits = Physics.RaycastAll(position + Vector3.up * 8f, Vector3.down, 16f,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            System.Array.Sort(hits, (left, right) => left.distance.CompareTo(right.distance));
+            foreach (RaycastHit hit in hits)
+            {
+                if (IsWalkableGround(hit.collider))
+                {
+                    ground = hit;
+                    return true;
+                }
+            }
+
+            ground = default;
+            return false;
+        }
+
+        private bool IsWalkableGround(Collider candidate)
+        {
+            if (candidate == null || candidate.transform.IsChildOf(transform) ||
+                candidate.GetComponentInParent<PlatformerEnemy>() != null ||
+                candidate.GetComponentInParent<CharacterController>() != null)
+            {
+                return false;
+            }
+
+            Bounds bounds = candidate.bounds;
+            bool hasWalkableFootprint = bounds.size.x >= 1.25f || bounds.size.z >= 1.25f;
+            bool isNotAVerticalBlocker = bounds.size.y <= 1.5f;
+            return hasWalkableFootprint && isNotAVerticalBlocker;
+        }
         void Defeat(Transform root)
         {
             if (defeated) return;
@@ -151,15 +171,17 @@ namespace CyberRakshak.Platformer
         {
             CharacterController controller = root.GetComponent<CharacterController>();
             if (controller == null) yield break;
+            PlatformerMotionAdapter.BeginTraversalOverride(controller);
             float velocity = bounceVelocity;
             const float gravity = -25f;
             const float duration = .22f;
             for (float elapsed = 0f; elapsed < duration; elapsed += Time.deltaTime)
             {
-                controller.Move(Vector3.up * velocity * Time.deltaTime);
+                PlatformerMotionAdapter.MoveTraversalOverride(controller, Vector3.up * velocity * Time.deltaTime);
                 velocity += gravity * Time.deltaTime;
                 yield return null;
             }
+            PlatformerMotionAdapter.EndTraversalOverride(controller);
         }
     }
 }

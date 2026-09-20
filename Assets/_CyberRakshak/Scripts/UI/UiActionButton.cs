@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using CyberRakshak.Runtime;
 
 public enum UiAction
@@ -19,13 +18,23 @@ public enum UiAction
 }
 
 [RequireComponent(typeof(Button))]
-public sealed class UiActionButton : MonoBehaviour, IPointerClickHandler
+public sealed class UiActionButton : MonoBehaviour
 {
     public UiAction action;
+    private Button button;
 
-    public void OnPointerClick(PointerEventData eventData)
+    private void Awake()
     {
-        ExecuteAction();
+        button = GetComponent<Button>();
+        button.onClick.AddListener(ExecuteAction);
+    }
+
+    private void OnDestroy()
+    {
+        if (button != null)
+        {
+            button.onClick.RemoveListener(ExecuteAction);
+        }
     }
 
     public void ExecuteAction()

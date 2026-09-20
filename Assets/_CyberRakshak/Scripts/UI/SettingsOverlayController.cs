@@ -47,12 +47,11 @@ namespace CyberRakshak.Runtime
 
         private void Update()
         {
-            // Some decorative images in the imported card can swallow a UI
-            // raycast. The screen-rectangle check keeps the visible Back area
-            // clickable even in that layout.
+            // Settings close only from the authored Back hit-area. Decorative
+            // images must not turn the entire lower screen into a close target.
             if (panel.activeSelf && Input.GetMouseButtonUp(0) &&
-                (backHitArea != null && RectTransformUtility.RectangleContainsScreenPoint(backHitArea, Input.mousePosition, null) ||
-                 Input.mousePosition.y < Screen.height * 0.32f))
+                backHitArea != null &&
+                RectTransformUtility.RectangleContainsScreenPoint(backHitArea, Input.mousePosition, null))
             {
                 Close();
             }

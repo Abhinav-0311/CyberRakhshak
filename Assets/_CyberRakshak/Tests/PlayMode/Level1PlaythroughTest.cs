@@ -1,5 +1,6 @@
 using System.Collections;
-using System.Linq;
+using CyberRakshak.Platformer;
+using CyberRakshak.Runtime;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -7,59 +8,42 @@ using UnityEngine.SceneManagement;
 
 namespace CyberRakshak.Tests
 {
-    public class Level1PlaythroughTest
+    public sealed class Level1PlaythroughTest
     {
         [UnityTest]
-        public IEnumerator InspectLevel1_LogsFindings()
+        public IEnumerator Level1_HasRequiredPlayerRouteWiring()
         {
-            // Load the scene
             SceneManager.LoadScene("Assets/_CyberRakshak/Scenes/Game_Level01.unity");
-            
-            // Wait for it to fully load
             yield return null;
-            yield return new WaitForSeconds(1f);
-
-            string report = "\n=== CLI PLAYTHROUGH FINDINGS ===\n";
-
-            // Find Player
             GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null) {
-                report += $"- Player found: {player.name} at {player.transform.position}\n";
-            } else {
-                report += "- No Player found!\n";
-            }
+            GameObject gate = GameObject.Find("Firewall_Gate");
+            LeverSwitch lever = Object.FindFirstObjectByType<LeverSwitch>();
+            GameObject completionZone = GameObject.Find("Level1_Complete_Zone");
 
-            // Find PATCH
-            GameObject patch = GameObject.Find("PATCH");
-            if (patch != null) {
-                report += $"- PATCH found: {patch.name}\n";
-            } else {
-                report += "- No PATCH companion found.\n";
-            }
+            Assert.That(player, Is.Not.Null, "Level 1 needs a tagged player.");
+            Assert.That(player.GetComponent<PlayerHealth>(), Is.Not.Null, "Level 1 player needs health/restart handling.");
+            Assert.That(Object.FindFirstObjectByType<PlatformerHud>(), Is.Not.Null, "Level 1 needs its health HUD.");
+            Assert.That(Object.FindObjectsByType<PlatformerEnemy>(FindObjectsSortMode.None).Length, Is.EqualTo(4));
+            Assert.That(gate?.GetComponent<Collider>(), Is.Not.Null, "Firewall_Gate needs a collider.");
+            Assert.That(lever?.waterfall, Is.Not.Null, "Water lever needs its waterfall reference.");
+            Assert.That(lever?.firewall, Is.Not.Null, "Water lever needs the exact firewall reference.");
+            Assert.That(completionZone, Is.Not.Null, "Level 1 needs a completion trigger after the treadmill section.");
+            Assert.That(completionZone?.GetComponent<BoxCollider>(), Is.Not.Null, "Level 1 completion zone needs a collider.");
+            Assert.That(completionZone != null && completionZone.GetComponent<BoxCollider>().isTrigger, Is.True, "Level 1 completion collider must be a trigger.");
+        }
 
-            // Count Geometry
-            var renderers = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
-            int cubes = 0, walls = 0, gates = 0, keys = 0;
-            foreach(var r in renderers) {
-                string n = r.gameObject.name.ToLower();
-                if (n.Contains("cube")) cubes++;
-                if (n.Contains("wall")) walls++;
-                if (n.Contains("gate") || n.Contains("firewall")) gates++;
-                if (n.Contains("key")) keys++;
-            }
-            report += $"- Geometry: {walls} Walls, {gates} Gates, {keys} Keys, {cubes} Cubes.\n";
+        [UnityTest]
+        public IEnumerator Tutorial_HasFallRecoveryAndCompletionZone()
+        {
+            SceneManager.LoadScene("Assets/_CyberRakshak/Scenes/Game_Tutorial.unity");
+            yield return null;
 
-            // Count Triggers
-            var colliders = Object.FindObjectsByType<Collider>(FindObjectsSortMode.None);
-            int triggers = colliders.Count(c => c.isTrigger);
-            report += $"- Triggers: {triggers} trigger volumes.\n";
-
-            report += "================================\n";
-            
-            Debug.Log(report);
-            
-            // The test passes if it reaches this point without crashing
-            Assert.Pass();
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            GameObject completionZone = GameObject.Find("Tutorial_Complete_Zone");
+            Assert.That(player?.GetComponent<SceneFallRecovery>(), Is.Not.Null, "Tutorial player needs fall recovery.");
+            Assert.That(completionZone, Is.Not.Null, "Tutorial needs a completion trigger.");
+            Assert.That(completionZone?.GetComponent<BoxCollider>(), Is.Not.Null, "Tutorial completion zone needs a collider.");
+            Assert.That(completionZone != null && completionZone.GetComponent<BoxCollider>().isTrigger, Is.True, "Tutorial completion collider must be a trigger.");
         }
     }
 }
