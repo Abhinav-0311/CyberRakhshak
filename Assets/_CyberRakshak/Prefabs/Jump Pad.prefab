@@ -97,7 +97,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CyberRakshak::JumpBoosterPad
   bounceHeight: 6
-  bounceDuration: 0.8
+  bounceDuration: 2
+  forwardDistance: 10
+  topTolerance: 0.55
+  landingClearance: 0.12
+  launchTargetName: 
 --- !u!65 &1292709206496441164
 BoxCollider:
   m_ObjectHideFlags: 0

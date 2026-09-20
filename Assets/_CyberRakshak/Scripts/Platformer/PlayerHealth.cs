@@ -25,6 +25,11 @@ namespace CyberRakshak.Platformer
             }
         }
 
+        private void OnControllerColliderHit(ControllerColliderHit hit)
+        {
+            hit.collider.GetComponentInParent<PlatformerEnemy>()?.TryResolvePlayerContact(GetComponent<CharacterController>());
+        }
+
         public bool TakeHit(int damage)
         {
             if (IsDefeated || Time.time < nextDamageTime)

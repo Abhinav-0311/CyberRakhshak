@@ -17,7 +17,8 @@ namespace CyberRakshak.Runtime
 
         public void Refresh()
         {
-            ApplyCard(levelOneButton, levelOneStatus, GameProgression.IsLevelOneUnlocked, GameProgression.HasCompletedLevelOne);
+            // Level 1 is the reviewable core module and should always be reachable from Level Select.
+            ApplyCard(levelOneButton, levelOneStatus, true, GameProgression.HasCompletedLevelOne);
             ApplyCard(levelTwoButton, levelTwoStatus, GameProgression.IsLevelTwoUnlocked, false);
         }
 

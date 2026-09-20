@@ -9,6 +9,7 @@ namespace CyberRakshak.Runtime
         private const string LatestSceneKey = "CyberRakshak.LatestUnlockedScene";
 
         public static bool HasCompletedTutorial => PlayerPrefs.GetInt(TutorialCompleteKey, 0) == 1;
+        public static bool HasStartedTraining => HasCompletedTutorial || HasCompletedLevelOne;
         public static bool IsLevelOneUnlocked => HasCompletedTutorial;
         public static bool HasCompletedLevelOne => PlayerPrefs.GetInt(LevelOneCompleteKey, 0) == 1;
         public static bool IsLevelTwoUnlocked => HasCompletedLevelOne;

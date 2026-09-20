@@ -22,8 +22,7 @@ namespace CyberRakshak.Runtime
 
         public void LoadLevelOne()
         {
-            if (GameProgression.IsLevelOneUnlocked)
-                SceneManager.LoadScene("Game_Level01");
+            SceneManager.LoadScene("Game_Level01");
         }
 
         public void ReturnToMainMenu()
