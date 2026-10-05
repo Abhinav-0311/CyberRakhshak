@@ -34,7 +34,9 @@ public static class CyberRakshakSceneBuilder
             new EditorBuildSettingsScene("Assets/_CyberRakshak/Scenes/Splash.unity", true),
             new EditorBuildSettingsScene("Assets/_CyberRakshak/Scenes/MainMenu.unity", true),
             new EditorBuildSettingsScene("Assets/_CyberRakshak/Scenes/LevelSelect.unity", true),
-            new EditorBuildSettingsScene("Assets/_CyberRakshak/Scenes/Game_Tutorial.unity", true)
+            new EditorBuildSettingsScene("Assets/_CyberRakshak/Scenes/Game_Tutorial.unity", true),
+            new EditorBuildSettingsScene("Assets/_CyberRakshak/Scenes/Game_Level01.unity", true),
+            new EditorBuildSettingsScene("Assets/_CyberRakshak/Scenes/Game_Level02.unity", true)
         };
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -103,27 +105,181 @@ public static class CyberRakshakSceneBuilder
     {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         AddSceneCameraAndLight();
-        var canvas = CanvasRoot("LevelSelectUI");
-        Background(canvas.transform);
-        var title = Text("Title", canvas.transform, "SELECT TRAINING MODULE", 50, White, FontStyle.Bold);
-        Place(title.rectTransform, .08f, .80f, .7f, .88f);
-        var caption = Text("Caption", canvas.transform, "Build your ethical-hacking instincts one mission at a time.", 21, Muted, FontStyle.Normal);
-        Place(caption.rectTransform, .08f, .75f, .7f, .80f);
-
-        var navigator = canvas.gameObject.AddComponent<SceneNavigator>();
-        var tutorial = LevelCard("TutorialCard", canvas.transform, "TUTORIAL", "Meet Patch and learn the controls.", Cyan, true);
-        Place(tutorial.GetComponent<RectTransform>(), .08f, .47f, .42f, .68f);
-        tutorial.onClick.AddListener(navigator.LoadTutorial);
-        var levelOne = LevelCard("LevelOneCard", canvas.transform, "LEVEL 1  //  FIREWALL FOUNDATIONS", "Complete the tutorial to unlock.", Muted, false);
-        Place(levelOne.GetComponent<RectTransform>(), .46f, .47f, .80f, .68f);
-        levelOne.onClick.AddListener(navigator.LoadLevelOne);
-        var back = MenuButton("BackButton", canvas.transform, "BACK", Muted, false);
-        Place(back.GetComponent<RectTransform>(), .08f, .18f, .25f, .25f);
-        back.onClick.AddListener(navigator.ReturnToMainMenu);
-
-        var controller = canvas.gameObject.AddComponent<LevelSelectController>();
-        Set(controller, "levelOneButton", levelOne);
+        scene.name = "LevelSelect";
+        RebuildLevelSelectUI();
         Save(scene, "Assets/_CyberRakshak/Scenes/LevelSelect.unity");
+    }
+
+    [MenuItem("CyberRakshak/Rebuild Level Select UI")]
+    public static void RebuildLevelSelectUI()
+    {
+        var scene = SceneManager.GetActiveScene();
+        if (EditorApplication.isPlaying || scene.name != "LevelSelect")
+            throw new System.InvalidOperationException("Open LevelSelect in Edit Mode first.");
+        var background = AssetDatabase.LoadAssetAtPath<Sprite>(BackgroundPath);
+        if (background == null)
+            throw new System.InvalidOperationException("The clean PATCH background is missing.");
+
+        Undo.IncrementCurrentGroup();
+        int undoGroup = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Rebuild Level Select UI");
+        var previous = GameObject.Find("LevelSelectUI");
+        var canvas = CanvasRoot("LevelSelectUI_New");
+        canvas.gameObject.SetActive(false);
+        Undo.RegisterCreatedObjectUndo(canvas.gameObject, "Create native module directory");
+        Background(canvas.transform);
+        var content = Image("ModuleDirectory", canvas.transform, Color.clear);
+        Stretch(content.rectTransform);
+        var brand = Text("Brand", content.transform, "CYBERRAKSHAK  /  TRAINING", 22, Cyan, FontStyle.Bold);
+        Place(brand.rectTransform, .065f, .88f, .6f, .94f);
+        var title = Text("Title", content.transform, "Choose your mission.", 62, White, FontStyle.Bold);
+        Place(title.rectTransform, .065f, .78f, .62f, .87f);
+        var caption = Text("Caption", content.transform, "Learn the controls. Defend the system. Spot the deception.", 24, Muted, FontStyle.Normal);
+        Place(caption.rectTransform, .067f, .735f, .65f, .79f);
+
+        const string prefabPath = "Assets/_CyberRakshak/Prefabs/UI/TrainingModuleCard.prefab";
+        if (!AssetDatabase.IsValidFolder("Assets/_CyberRakshak/Prefabs/UI"))
+            AssetDatabase.CreateFolder("Assets/_CyberRakshak/Prefabs", "UI");
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (prefab == null)
+        {
+            var template = CreateModuleCard();
+            prefab = PrefabUtility.SaveAsPrefabAsset(template.gameObject, prefabPath);
+            Object.DestroyImmediate(template.gameObject);
+        }
+        var tutorial = ModuleCard(prefab, content.transform, "Tutorial", "00", "ONBOARDING", "Tutorial",
+            "Meet PATCH. Learn to move, jump and interact.", .565f, UiAction.LoadTutorial);
+        var levelOne = ModuleCard(prefab, content.transform, "LevelOne", "01", "FIREWALL FOUNDATIONS", "Firewall Foundations",
+            "Clear the patrol. Extinguish the fire. Reach the exit.", .385f, UiAction.LoadLevelOne);
+        var levelTwo = ModuleCard(prefab, content.transform, "LevelTwo", "02", "MAZE PROTOTYPE", "Level 2 Maze",
+            "Find the exit. Phishing challenges are not implemented yet.", .205f, UiAction.LoadLevelTwo);
+        var back = MenuButton("BackHit", content.transform, "<  BACK TO MENU", Cyan, true);
+        Place(back.GetComponent<RectTransform>(), .065f, .075f, .26f, .135f);
+        back.gameObject.AddComponent<UiActionButton>().action = UiAction.ReturnMainMenu;
+        back.transition = Selectable.Transition.ColorTint;
+        var backColors = back.colors;
+        backColors.highlightedColor = backColors.selectedColor = new Color(.55f, .9f, 1f);
+        back.colors = backColors;
+        var hint = Text("NavigationHint", content.transform, "ARROWS  /  SELECT     ENTER  /  PLAY", 19, Muted, FontStyle.Normal);
+        hint.alignment = TextAnchor.MiddleRight;
+        Place(hint.rectTransform, .31f, .08f, .60f, .13f);
+        var patchTag = Text("PatchLabel", content.transform, "PATCH  /  TRAINING ASSISTANT", 20, Cyan, FontStyle.Bold);
+        patchTag.alignment = TextAnchor.MiddleCenter;
+        Place(patchTag.rectTransform, .66f, .16f, .95f, .22f);
+        var patchMessage = Text("PatchMessage", content.transform, "Start with the tutorial.\nI'll be with you every step of the way.", 24, White, FontStyle.Normal);
+        patchMessage.alignment = TextAnchor.MiddleCenter;
+        Place(patchMessage.rectTransform, .64f, .075f, .97f, .16f);
+
+        var navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnUp = back, selectOnDown = levelOne };
+        tutorial.navigation = navigation;
+        navigation.selectOnUp = tutorial; navigation.selectOnDown = levelTwo;
+        levelOne.navigation = navigation;
+        navigation.selectOnUp = levelOne; navigation.selectOnDown = back;
+        levelTwo.navigation = navigation;
+        navigation.selectOnUp = levelTwo; navigation.selectOnDown = tutorial;
+        back.navigation = navigation;
+        var eventSystem = canvas.GetComponentInChildren<EventSystem>();
+        eventSystem.firstSelectedGameObject = tutorial.gameObject;
+        canvas.gameObject.AddComponent<SceneNavigator>();
+        var controller = canvas.gameObject.AddComponent<LevelSelectController>();
+        Set(controller, "tutorialButton", tutorial);
+        Set(controller, "tutorialStatus", tutorial.transform.Find("TutorialStatus").GetComponent<Text>());
+        Set(controller, "levelOneButton", levelOne);
+        Set(controller, "levelOneStatus", levelOne.transform.Find("LevelOneStatus").GetComponent<Text>());
+        Set(controller, "levelTwoButton", levelTwo);
+        Set(controller, "levelTwoStatus", levelTwo.transform.Find("LevelTwoStatus").GetComponent<Text>());
+        foreach (var graphic in canvas.GetComponentsInChildren<Graphic>(true))
+            graphic.raycastTarget = graphic.GetComponent<Button>() != null;
+        if (previous != null) Undo.DestroyObjectImmediate(previous);
+        canvas.name = "LevelSelectUI";
+        canvas.gameObject.SetActive(true);
+        controller.Refresh();
+        Undo.CollapseUndoOperations(undoGroup);
+        EditorSceneManager.MarkSceneDirty(scene);
+    }
+
+    private static Button CreateModuleCard()
+    {
+        var image = Image("TrainingModuleCard", null, Color.white);
+        image.rectTransform.sizeDelta = new Vector2(1030, 166);
+        var border = image.gameObject.AddComponent<Outline>();
+        border.effectColor = new Color(.18f, .65f, .85f, .4f);
+        border.effectDistance = new Vector2(1.5f, -1.5f);
+        var button = image.gameObject.AddComponent<Button>();
+        button.targetGraphic = image;
+        var colors = button.colors;
+        colors.normalColor = new Color(.035f, .08f, .14f, .96f);
+        colors.highlightedColor = colors.selectedColor = new Color(.07f, .20f, .28f, 1f);
+        colors.pressedColor = new Color(.015f, .055f, .09f, 1f);
+        colors.disabledColor = new Color(.025f, .045f, .075f, .95f);
+        colors.fadeDuration = .12f;
+        button.colors = colors;
+        var rail = Image("AccentRail", image.transform, Cyan);
+        Place(rail.rectTransform, 0f, .12f, .004f, .88f);
+        var number = Text("Number", image.transform, "00", 46, Cyan, FontStyle.Bold);
+        number.alignment = TextAnchor.MiddleCenter;
+        Place(number.rectTransform, .012f, .14f, .12f, .88f);
+        var eyebrow = Text("Eyebrow", image.transform, "MODULE", 17, Cyan, FontStyle.Bold);
+        Place(eyebrow.rectTransform, .14f, .69f, .77f, .90f);
+        var heading = Text("Heading", image.transform, "Training Module", 38, White, FontStyle.Bold);
+        Place(heading.rectTransform, .14f, .36f, .78f, .70f);
+        var detail = Text("Detail", image.transform, "Mission description", 22, Muted, FontStyle.Normal);
+        Place(detail.rectTransform, .14f, .12f, .79f, .36f);
+        var status = Text("Status", image.transform, "PLAY", 23, Cyan, FontStyle.Bold);
+        status.alignment = TextAnchor.MiddleCenter;
+        Place(status.rectTransform, .81f, .35f, .975f, .65f);
+        foreach (var graphic in image.GetComponentsInChildren<Graphic>())
+            graphic.raycastTarget = graphic == image;
+        return button;
+    }
+
+    [MenuItem("CyberRakshak/Build PATCH Dialogue UI")]
+    public static void BuildPatchDialogueUI()
+    {
+        if (EditorApplication.isPlaying)
+            throw new System.InvalidOperationException("Leave Play Mode before authoring dialogue UI.");
+        const string folder = "Assets/_CyberRakshak/Resources/UI";
+        const string path = folder + "/PatchDialoguePanel.prefab";
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(path) != null)
+            throw new System.InvalidOperationException("Dialogue prefab exists; edit it directly instead of rebuilding it.");
+        if (AssetDatabase.LoadAssetAtPath<Sprite>(folder + "/PatchPortrait.png") == null)
+            throw new System.InvalidOperationException("Import the PATCH portrait as a sprite first.");
+        var root = new GameObject("PATCH_DialogueUI", typeof(RectTransform));
+        try
+        {
+            var presenter = root.AddComponent<CyberRakshak.PATCH.PatchDialoguePresenter>();
+            Set(presenter, "bubbleSprite", AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd"));
+            presenter.GetType().GetMethod("BuildDefaultPanel", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(presenter, null);
+            PrefabUtility.SaveAsPrefabAsset(root, path);
+        }
+        finally { Object.DestroyImmediate(root); }
+    }
+
+    private static Button ModuleCard(GameObject prefab, Transform parent, string key, string number, string eyebrow,
+        string heading, string detail, float bottom, UiAction? action)
+    {
+        var card = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
+        card.name = key + "Hit";
+        Place(card.GetComponent<RectTransform>(), .065f, bottom, .60f, bottom + .155f);
+        card.transform.Find("Number").GetComponent<Text>().text = number;
+        card.transform.Find("Eyebrow").GetComponent<Text>().text = eyebrow;
+        card.transform.Find("Heading").GetComponent<Text>().text = heading;
+        card.transform.Find("Heading").name = key + "Title";
+        card.transform.Find("Detail").GetComponent<Text>().text = detail;
+        card.transform.Find("Status").name = key + "Status";
+        var button = card.GetComponent<Button>();
+        if (action.HasValue) card.AddComponent<UiActionButton>().action = action.Value;
+        else
+        {
+            button.interactable = false;
+            foreach (var text in card.GetComponentsInChildren<Text>()) text.color = Muted;
+            card.transform.Find("AccentRail").GetComponent<Image>().color = Muted;
+        }
+        PrefabUtility.RecordPrefabInstancePropertyModifications(card.transform);
+        foreach (var component in card.GetComponentsInChildren<Component>())
+            if (component != null) PrefabUtility.RecordPrefabInstancePropertyModifications(component);
+        return button;
     }
 
     private static void BuildTutorialScene()
@@ -241,18 +397,6 @@ public static class CyberRakshakSceneBuilder
         var button = image.gameObject.AddComponent<Button>();
         var text = Text("Label", image.transform, label, 28, primary ? White : color, FontStyle.Bold);
         Place(text.rectTransform, .07f, 0f, .96f, 1f);
-        return button;
-    }
-
-    private static Button LevelCard(string name, Transform parent, string label, string detail, Color color, bool available)
-    {
-        var image = Image(name, parent, new Color(Card.r, Card.g, Card.b, available ? .96f : .65f));
-        var button = image.gameObject.AddComponent<Button>();
-        button.interactable = available;
-        var heading = Text("Heading", image.transform, label, 24, available ? White : Muted, FontStyle.Bold);
-        Place(heading.rectTransform, .08f, .55f, .92f, .85f);
-        var body = Text("Detail", image.transform, detail, 17, available ? Cyan : Muted, FontStyle.Normal);
-        Place(body.rectTransform, .08f, .20f, .92f, .52f);
         return button;
     }
 

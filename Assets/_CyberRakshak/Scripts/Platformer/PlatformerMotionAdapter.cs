@@ -56,7 +56,9 @@ namespace CyberRakshak.Platformer
 
         private static Component FindMotor(CharacterController controller)
         {
-            return controller != null ? controller.GetComponent("ThirdPersonController") : null;
+            return controller != null
+                ? controller.GetComponent("StarterAssets.ThirdPersonController") ?? controller.GetComponent("ThirdPersonController")
+                : null;
         }
     }
 }

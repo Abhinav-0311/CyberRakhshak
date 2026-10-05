@@ -16,6 +16,7 @@ namespace CyberRakshak.Platformer
 
         private float nextDamageTime;
         private bool restarting;
+        private float pendingBurnDamage;
 
         private void Update()
         {
@@ -32,20 +33,35 @@ namespace CyberRakshak.Platformer
 
         public bool TakeHit(int damage)
         {
-            if (IsDefeated || Time.time < nextDamageTime)
+            if (damage <= 0 || IsDefeated || restarting || Time.time < nextDamageTime)
             {
                 return false;
             }
 
-            CurrentHealth = Mathf.Max(0, CurrentHealth - damage);
             nextDamageTime = Time.time + contactInvulnerabilitySeconds;
+            ApplyDamage(damage);
+            return true;
+        }
+
+        /// <summary>Continuous fire damage is independent of enemy-contact invulnerability.</summary>
+        public void TakeBurnDamage(float damage)
+        {
+            if (damage <= 0f || float.IsNaN(damage) || float.IsInfinity(damage) || IsDefeated || restarting) return;
+            pendingBurnDamage += damage;
+            int wholeDamage = Mathf.FloorToInt(Mathf.Min(pendingBurnDamage, CurrentHealth));
+            if (wholeDamage == 0) return;
+            pendingBurnDamage -= wholeDamage;
+            ApplyDamage(wholeDamage);
+        }
+
+        private void ApplyDamage(int damage)
+        {
+            CurrentHealth = Mathf.Max(0, CurrentHealth - damage);
             PlatformerHud.Instance?.SetHealth(CurrentHealth, MaxHealth);
-            Debug.Log($"Firewall contact: -{damage} HP. Remaining health: {CurrentHealth}.");
             if (CurrentHealth == 0)
             {
                 RestartLevel();
             }
-            return true;
         }
 
         private void RestartLevel()

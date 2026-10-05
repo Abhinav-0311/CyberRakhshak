@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using CyberRakshak.Platformer;
 
 namespace CyberRakshak
 {
@@ -7,11 +8,16 @@ namespace CyberRakshak
     {
         [Tooltip("The time in seconds it takes to extinguish the fire after water hits it.")]
         public float extinguishDelay = 2.0f;
+        [Min(0f), Tooltip("Integrity lost per second while touching the burning gate.")]
+        public float damagePerSecond = 10f;
 
         [Tooltip("The particle systems to stop when extinguished.")]
         public ParticleSystem[] fireParticles;
         
         private bool isExtinguished = false;
+        private bool extinguishing;
+        private PlayerHealth playerHealth;
+        private CharacterController playerController;
         private Collider hazardCollider;
         private ParticleSystem denseFirewall;
         private GameObject denseFirewallRoot;
@@ -43,10 +49,28 @@ namespace CyberRakshak
             }
         }
 
+        private void Update()
+        {
+            if (isExtinguished || hazardCollider == null || !hazardCollider.enabled || Time.deltaTime <= 0f) return;
+            if (playerHealth == null)
+            {
+                playerHealth = FindFirstObjectByType<PlayerHealth>();
+                playerController = playerHealth != null ? playerHealth.GetComponent<CharacterController>() : null;
+            }
+            if (playerController == null || !playerController.enabled) return;
+
+            // The gate is solid: include a small contact skin so the controller burns
+            // at the blocking face without needing to penetrate its collider.
+            Bounds burnBounds = hazardCollider.bounds;
+            burnBounds.Expand(.2f);
+            if (burnBounds.Intersects(playerController.bounds))
+                playerHealth.TakeBurnDamage(damagePerSecond * Time.deltaTime);
+        }
+
         /// <summary>Allows an authored lever/water sequence to clear this gate without particle-collider coupling.</summary>
         public void BeginExtinguish()
         {
-            if (!isExtinguished)
+            if (!isExtinguished && !extinguishing)
             {
                 StartCoroutine(ExtinguishRoutine());
             }
@@ -219,10 +243,11 @@ namespace CyberRakshak
 
         private IEnumerator ExtinguishRoutine()
         {
-            isExtinguished = true;
+            extinguishing = true;
             Debug.Log("Firewall is being extinguished...");
 
             yield return new WaitForSeconds(extinguishDelay);
+            isExtinguished = true;
 
             // Stop emitting fire
             foreach (var ps in fireParticles)

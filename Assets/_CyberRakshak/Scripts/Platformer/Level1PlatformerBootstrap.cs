@@ -26,23 +26,32 @@ namespace CyberRakshak.Platformer
                 player.AddComponent<PlayerHealth>();
             }
             PlatformerHud.EnsureCreated();
+            PlatformerHud.Instance?.SetObjective("CLEAR THE PATROL");
             ConfigurePlatformerTraversal(player);
             ConfigureJumpPadRoute();
             ConfigureWaterFirewallSequence();
+        }
+
+        private void Start()
+        {
+            // Every enemy establishes its grounded patrol position in Awake.
+            // Calculate the clearance gate after those positions are final.
+            EnemySectionBarrier.EnsureCreated();
         }
 
         private static void ConfigurePlatformerTraversal(GameObject player)
         {
             // CyberRakshak.asmdef intentionally does not reference StarterAssets.
             // Tune its public values by name so Level 1 keeps a simple, arcade platformer jump.
-            Component controller = player.GetComponent("ThirdPersonController");
+            Component controller = player.GetComponent("StarterAssets.ThirdPersonController") ??
+                                   player.GetComponent("ThirdPersonController");
             if (controller != null)
             {
                 SetPublicFloat(controller, "JumpHeight", 2f);
                 SetPublicFloat(controller, "JumpTimeout", .2f);
                 SetPublicFloat(controller, "FallTimeout", .08f);
                 SetPublicFloat(controller, "LeapDistance", 6.2f);
-                SetPublicFloat(controller, "LeapHeight", 1.8f);
+                SetPublicFloat(controller, "LeapHeight", 2.5f);
                 SetPublicFloat(controller, "LeapDuration", .9f);
             }
 
@@ -64,15 +73,7 @@ namespace CyberRakshak.Platformer
 
         private static void ConfigureJumpPadRoute()
         {
-            JumpBoosterPad startPad = GameObject.Find("LaunchPad_Start")?.GetComponent<JumpBoosterPad>();
-            JumpBoosterPad upperPad = GameObject.Find("LaunchPad_Upper")?.GetComponent<JumpBoosterPad>();
-
-            if (startPad != null)
-            {
-                startPad.launchTargetName = "LaunchPad_Upper";
-                startPad.bounceHeight = 4.2f;
-                startPad.bounceDuration = 1.05f;
-            }
+            JumpBoosterPad upperPad = FindFirstObjectByType<JumpBoosterPad>(FindObjectsInactive.Include);
 
             if (upperPad != null)
             {

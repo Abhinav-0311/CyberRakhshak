@@ -25,7 +25,7 @@ namespace CyberRakshak.PATCH
                 return;
             }
 
-            if (!other.CompareTag(playerTag))
+            if (!other.CompareTag(playerTag) && !other.transform.root.CompareTag(playerTag))
             {
                 return;
             }

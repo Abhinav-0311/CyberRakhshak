@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 5de49898d76f2f94c818e031fc5a8c1e
+AssetOrigin:
+  serializedVersion: 1
+  productId: 394188
+  packageName: "Maze Generator \u2014 Procedural 3D Toolkit"
+  packageVersion: 1.0.0
+  assetPath: Assets/MazeGenerator/Runtime/Algorithms/RecursiveBacktrackerAlgorithm.cs
+  uploadId: 955818

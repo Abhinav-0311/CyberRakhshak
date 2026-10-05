@@ -4,7 +4,10 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "CyberRakshak"
+        "CyberRakshak",
+        "UnityEngine.UI",
+        "Unity.TextMeshPro",
+        "MazeGenerator.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

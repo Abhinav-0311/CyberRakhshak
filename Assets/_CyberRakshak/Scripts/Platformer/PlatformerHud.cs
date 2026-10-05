@@ -10,6 +10,7 @@ namespace CyberRakshak.Platformer
 
         private Image fill;
         private Text label;
+        private Text objectiveLabel;
 
         public static void EnsureCreated()
         {
@@ -47,10 +48,18 @@ namespace CyberRakshak.Platformer
                 return;
             }
 
-            float value = current / (float)max;
-            fill.fillAmount = value;
+            float value = max > 0 ? Mathf.Clamp01(current / (float)max) : 0f;
+            fill.rectTransform.anchorMax = new Vector2(value, 1f);
             fill.color = value > 0.5f ? new Color(0.15f, 0.9f, 0.95f) : new Color(1f, 0.35f, 0.25f);
             label.text = $"SYSTEM INTEGRITY  {current}/{max}";
+        }
+
+        public void SetObjective(string objective)
+        {
+            if (objectiveLabel != null)
+            {
+                objectiveLabel.text = "OBJECTIVE: " + objective;
+            }
         }
 
         private void Build()
@@ -61,15 +70,19 @@ namespace CyberRakshak.Platformer
             RectTransform background = CreateImage("HealthBarBackground", panel, new Color(0.05f, 0.1f, 0.17f, 1f));
             Anchor(background, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.52f));
             fill = CreateImage("HealthBarFill", background, Color.cyan).GetComponent<Image>();
-            fill.type = Image.Type.Filled;
-            fill.fillMethod = Image.FillMethod.Horizontal;
-            fill.fillOrigin = 0;
             Anchor(fill.rectTransform, Vector2.zero, Vector2.one);
 
             label = CreateText("HealthLabel", panel);
             label.alignment = TextAnchor.MiddleLeft;
             label.fontSize = 22;
             Anchor(label.rectTransform, new Vector2(0.05f, 0.55f), new Vector2(0.95f, 0.93f));
+
+            RectTransform objectivePanel = CreateImage("ObjectivePanel", transform, new Color(0.015f, 0.04f, 0.1f, 0.82f));
+            Anchor(objectivePanel, new Vector2(0.035f, 0.81f), new Vector2(0.39f, 0.86f));
+            objectiveLabel = CreateText("ObjectiveLabel", objectivePanel);
+            objectiveLabel.fontSize = 18;
+            objectiveLabel.color = new Color(0.6f, 0.92f, 1f, 1f);
+            Anchor(objectiveLabel.rectTransform, new Vector2(0.04f, 0.14f), new Vector2(0.96f, 0.86f));
         }
 
         private static RectTransform CreateImage(string name, Transform parent, Color color)

@@ -20,6 +20,8 @@ namespace CyberRakshak.Runtime
 
         public void LoadTutorial() => SceneManager.LoadScene("Game_Tutorial");
 
+        public void LoadLevelTwo() => SceneManager.LoadScene("Game_Level02");
+
         public void LoadLevelOne()
         {
             SceneManager.LoadScene("Game_Level01");

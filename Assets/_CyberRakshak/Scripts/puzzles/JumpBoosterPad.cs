@@ -52,7 +52,8 @@ public sealed class JumpBoosterPad : MonoBehaviour
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
             {
-                playerController = player.GetComponent<CharacterController>();
+                    playerController = player.GetComponent<CharacterController>() ??
+                                       player.GetComponentInChildren<CharacterController>();
             }
         }
 

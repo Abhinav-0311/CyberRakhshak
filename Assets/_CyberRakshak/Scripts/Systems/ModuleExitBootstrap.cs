@@ -30,9 +30,10 @@ namespace CyberRakshak.Runtime
         private static void EnsureTutorialFallRecovery()
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null && player.GetComponent<SceneFallRecovery>() == null)
+            CharacterController controller = player != null ? player.GetComponentInChildren<CharacterController>() : null;
+            if (controller != null && controller.GetComponent<SceneFallRecovery>() == null)
             {
-                player.AddComponent<SceneFallRecovery>();
+                controller.gameObject.AddComponent<SceneFallRecovery>();
             }
         }
 
@@ -73,7 +74,9 @@ namespace CyberRakshak.Runtime
                 return;
             }
 
-            Bounds endBounds = treadmills[0].GetComponent<Collider>().bounds;
+            Collider firstSurface = treadmills[0].GetComponent<Collider>();
+            if (firstSurface == null) return;
+            Bounds endBounds = firstSurface.bounds;
             foreach (TreadmillPlatform treadmill in treadmills)
             {
                 Collider collider = treadmill.GetComponent<Collider>();
@@ -83,7 +86,19 @@ namespace CyberRakshak.Runtime
                 }
             }
 
-            CreateZone("Level1_Complete_Zone", new Vector3(endBounds.center.x, endBounds.max.y + 2f, endBounds.max.z + 2f),
+            // Finish on the authored landing platform, never in the gap after the last belt.
+            Transform platforms = treadmills[0].transform.parent.parent;
+            if (platforms == null) return;
+            foreach (Collider surface in platforms.GetComponentsInChildren<Collider>())
+            {
+                if (surface.enabled && !surface.isTrigger && surface.bounds.min.z >= endBounds.max.z &&
+                    surface.bounds.max.y >= endBounds.max.y - 1f)
+                {
+                    endBounds = surface.bounds;
+                }
+            }
+
+            CreateZone("Level1_Complete_Zone", new Vector3(endBounds.center.x, endBounds.max.y + 2f, endBounds.center.z),
                 new Vector3(Mathf.Max(8f, endBounds.size.x + 4f), 4f, 2.5f), false);
         }
 
@@ -96,6 +111,14 @@ namespace CyberRakshak.Runtime
             collider.size = size;
             ModuleCompletionTrigger completion = zone.AddComponent<ModuleCompletionTrigger>();
             completion.Configure(completesTutorial, "LevelSelect", 2f);
+            GameObject sign = new GameObject("FinishSign", typeof(TMPro.TextMeshPro));
+            sign.transform.SetParent(zone.transform, false);
+            sign.transform.localPosition = Vector3.up;
+            TMPro.TextMeshPro label = sign.GetComponent<TMPro.TextMeshPro>();
+            label.text = "TRAINING EXIT";
+            label.fontSize = 5f;
+            label.alignment = TMPro.TextAlignmentOptions.Center;
+            label.color = Color.cyan;
         }
     }
 }

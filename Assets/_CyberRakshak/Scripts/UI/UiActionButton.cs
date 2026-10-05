@@ -14,7 +14,8 @@ public enum UiAction
     ReturnMainMenu,
     Resume,
     OpenPauseSettings,
-    ClosePauseSettings
+    ClosePauseSettings,
+    LoadLevelTwo
 }
 
 [RequireComponent(typeof(Button))]
@@ -65,6 +66,9 @@ public sealed class UiActionButton : MonoBehaviour
                 break;
             case UiAction.LoadLevelOne:
                 navigator?.LoadLevelOne();
+                break;
+            case UiAction.LoadLevelTwo:
+                navigator?.LoadLevelTwo();
                 break;
             case UiAction.ReturnMainMenu:
                 if (pause != null) pause.ReturnToMainMenu();

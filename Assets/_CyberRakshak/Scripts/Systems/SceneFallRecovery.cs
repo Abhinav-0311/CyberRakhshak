@@ -41,7 +41,8 @@ namespace CyberRakshak.Runtime
 
         private void ResetStarterAssetsMotion()
         {
-            Component controllerComponent = GetComponent("ThirdPersonController");
+            Component controllerComponent = GetComponent("StarterAssets.ThirdPersonController") ??
+                                          GetComponent("ThirdPersonController");
             if (controllerComponent == null)
             {
                 return;

@@ -1,4 +1,5 @@
 using System.Collections;
+using CyberRakshak.PATCH;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -17,6 +18,7 @@ namespace CyberRakshak.Runtime
         [SerializeField, Min(0f)] private float transitionDelay = 2f;
 
         private bool completed;
+        private bool IsMazePrototype => gameObject.scene.name == "Game_Level02";
 
         public void Configure(bool tutorial, string destination, float delay)
         {
@@ -27,7 +29,7 @@ namespace CyberRakshak.Runtime
 
         private void OnTriggerEnter(Collider other)
         {
-            if (completed || !other.CompareTag("Player"))
+            if (completed || (!other.CompareTag("Player") && !other.transform.root.CompareTag("Player")))
             {
                 return;
             }
@@ -37,7 +39,7 @@ namespace CyberRakshak.Runtime
             {
                 GameProgression.CompleteTutorial();
             }
-            else
+            else if (!IsMazePrototype)
             {
                 GameProgression.CompleteLevelOne(nextScene);
             }
@@ -47,7 +49,13 @@ namespace CyberRakshak.Runtime
 
         private IEnumerator CompleteRoutine()
         {
-            ShowCompletionOverlay(completesTutorial ? "TUTORIAL COMPLETE" : "LEVEL 1 COMPLETE");
+            PatchDialoguePresenter.Ensure().Show(
+                "PATCH",
+                IsMazePrototype ? "Maze exit reached. Returning to module select." :
+                    completesTutorial ? "Training complete. Next: Firewall Foundations." : "Firewall Foundations complete. Training data secured.",
+                transitionDelay);
+
+            ShowCompletionOverlay(IsMazePrototype ? "MAZE EXIT REACHED" : completesTutorial ? "TUTORIAL COMPLETE" : "LEVEL 1 COMPLETE");
             yield return new WaitForSecondsRealtime(transitionDelay);
             SceneManager.LoadScene(nextScene);
         }

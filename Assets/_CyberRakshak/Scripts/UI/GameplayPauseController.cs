@@ -11,7 +11,26 @@ namespace CyberRakshak.Runtime
         [SerializeField] private PauseBackdropController backdrop;
 
         private bool paused;
+        private bool dialogueBlocking;
+        private bool gameplayInputDisabled;
         private bool cursorLockedBeforePause = true;
+
+        public bool IsPaused => paused;
+
+        public void SetDialogueBlocking(bool blocked)
+        {
+            dialogueBlocking = blocked;
+            ApplyGameplayState();
+        }
+
+        private void ApplyGameplayState()
+        {
+            bool blocked = paused || dialogueBlocking;
+            SetGameplayInputEnabled(!blocked);
+            Time.timeScale = blocked ? 0f : 1f;
+            Cursor.lockState = blocked ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible = blocked;
+        }
 
         private void Awake()
         {
@@ -33,15 +52,20 @@ namespace CyberRakshak.Runtime
                 Pause();
         }
 
+        private void OnDisable()
+        {
+            if (!paused && !dialogueBlocking) return;
+            Time.timeScale = 1f;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
         public void Pause()
         {
             paused = true;
-            SetGameplayInputEnabled(false);
             backdrop.Capture();
             pausePanel.SetActive(true);
-            Time.timeScale = 0f;
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            ApplyGameplayState();
         }
 
         public void Resume()
@@ -50,10 +74,7 @@ namespace CyberRakshak.Runtime
             pausePanel.SetActive(false);
             settingsPanel.SetActive(false);
             backdrop.Hide();
-            Time.timeScale = 1f;
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            SetGameplayInputEnabled(true);
+            ApplyGameplayState();
         }
 
         public void OpenSettings()
@@ -77,11 +98,14 @@ namespace CyberRakshak.Runtime
 
         private void SetGameplayInputEnabled(bool enabled)
         {
+            if (gameplayInputDisabled == !enabled)
+                return;
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             if (player == null)
             {
                 return;
             }
+            gameplayInputDisabled = !enabled;
 
             Component playerInput = player.GetComponent("PlayerInput");
             playerInput?.GetType().GetMethod(enabled ? "ActivateInput" : "DeactivateInput")?.Invoke(playerInput, null);

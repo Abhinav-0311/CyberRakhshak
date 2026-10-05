@@ -1,3 +1,5 @@
+using CyberRakshak.PATCH;
+using CyberRakshak.Platformer;
 using UnityEngine;
 
 public class LeverSwitch : MonoBehaviour
@@ -15,13 +17,17 @@ public class LeverSwitch : MonoBehaviour
 
     private bool activated = false;
     private Transform player;
+    private bool promptShown;
 
     void Start()
     {
         GameObject p = GameObject.FindGameObjectWithTag("Player");
 
         if (p != null)
-            player = p.transform;
+        {
+            CharacterController controller = p.GetComponentInChildren<CharacterController>();
+            player = controller != null ? controller.transform : p.transform;
+        }
 
         if (waterfall != null)
             waterfall.SetActive(false);
@@ -32,6 +38,17 @@ public class LeverSwitch : MonoBehaviour
         if (Time.timeScale == 0f || activated || player == null) return;
 
         float distance = Vector3.Distance(transform.position, player.position);
+
+        if (distance <= interactionDistance && !promptShown)
+        {
+            promptShown = true;
+            PlatformerHud.Instance?.SetObjective("PRESS E TO ACTIVATE WATER CONTROL");
+            PatchDialoguePresenter.Ensure().Show("PATCH", "Press E to open the water control. This training simulation uses fire as a visual barrier; a real network firewall filters traffic using rules.", 8f);
+        }
+        else if (distance > interactionDistance)
+        {
+            promptShown = false;
+        }
 
         if (distance <= interactionDistance && Input.GetKeyDown(KeyCode.E))
         {
@@ -54,6 +71,8 @@ public class LeverSwitch : MonoBehaviour
             waterfall.SetActive(true);
 
         firewall.BeginExtinguish();
+        PlatformerHud.Instance?.SetObjective("CROSS THE OPEN FIREWALL");
+        PatchDialoguePresenter.Ensure().Show("PATCH", "Water flow active. The firewall is clearing—move through once the path opens.", 4f);
 
         // Rotate lever
         transform.localRotation = Quaternion.Euler(activatedRotation);

@@ -1,4 +1,5 @@
 using System.Collections;
+using CyberRakshak.PATCH;
 using CyberRakshak.Runtime;
 using UnityEngine;
 namespace CyberRakshak.Platformer
@@ -6,7 +7,7 @@ namespace CyberRakshak.Platformer
     [RequireComponent(typeof(CapsuleCollider), typeof(Rigidbody))]
     public sealed class PlatformerEnemy : MonoBehaviour
     {
-        [SerializeField] float roamSpeed = 2.25f, roamRadius = 6f, stompFootClearance = .12f, bounceVelocity = 10f, enemyScale = 4f;
+        [SerializeField] float roamSpeed = 2.25f, roamRadius = 6f, stompFootClearance = .04f, bounceVelocity = 12f, enemyScale = 4f;
         [SerializeField] int contactDamage = 34;
         Vector3 spawnPosition, roamTarget; Rigidbody body; CapsuleCollider hitbox; float nextTargetTime; float groundY; bool defeated;
 
@@ -58,7 +59,7 @@ namespace CyberRakshak.Platformer
             // Deliberately forgiving platformer stomp zone. Ground-level side
             // contact stays below this line, while any ordinary jump over the
             // SpaceMan's lower upper-body registers as a defeat.
-            float stompPlane = hitbox.bounds.min.y + Mathf.Min(.38f, hitbox.bounds.size.y * .25f) + stompFootClearance;
+            float stompPlane = hitbox.bounds.min.y + Mathf.Min(.2f, hitbox.bounds.size.y * .14f) + stompFootClearance;
             float playerFeet = controller != null ? controller.bounds.min.y : health.transform.position.y;
             if (playerFeet >= stompPlane)
             {
@@ -165,6 +166,10 @@ namespace CyberRakshak.Platformer
             StartCoroutine(BouncePlayer(root));
             foreach (var c in GetComponentsInChildren<Collider>()) c.enabled = false;
             transform.localScale *= .25f;
+            if (FindObjectsByType<PlatformerEnemy>(FindObjectsSortMode.None).Length == 1)
+            {
+                PatchDialoguePresenter.Ensure().Show("PATCH", "Patrol cleared. The firewall ahead is blocking the route—find the water control.", 5f);
+            }
             Destroy(gameObject, .35f);
         }
         IEnumerator BouncePlayer(Transform root)
@@ -174,7 +179,7 @@ namespace CyberRakshak.Platformer
             PlatformerMotionAdapter.BeginTraversalOverride(controller);
             float velocity = bounceVelocity;
             const float gravity = -25f;
-            const float duration = .22f;
+            const float duration = .3f;
             for (float elapsed = 0f; elapsed < duration; elapsed += Time.deltaTime)
             {
                 PlatformerMotionAdapter.MoveTraversalOverride(controller, Vector3.up * velocity * Time.deltaTime);
