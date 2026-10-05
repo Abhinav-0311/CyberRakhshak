@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: f68d1403c26366240a72f24eb62f56fa
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 394188
+  packageName: "Maze Generator \u2014 Procedural 3D Toolkit"
+  packageVersion: 1.0.0
+  assetPath: Assets/MazeGenerator/MazeGenerator.prefab
+  uploadId: 955818

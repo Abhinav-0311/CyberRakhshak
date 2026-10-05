@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 514255ea11a55b248864a1c568de1941
+AssetOrigin:
+  serializedVersion: 1
+  productId: 394188
+  packageName: "Maze Generator \u2014 Procedural 3D Toolkit"
+  packageVersion: 1.0.0
+  assetPath: Assets/MazeGenerator/Runtime/Algorithms/EllerAlgorithm.cs
+  uploadId: 955818

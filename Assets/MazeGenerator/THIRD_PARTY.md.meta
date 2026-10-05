@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: d046c6bf635717d4f9eca022eced406d
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 394188
+  packageName: "Maze Generator \u2014 Procedural 3D Toolkit"
+  packageVersion: 1.0.0
+  assetPath: Assets/MazeGenerator/THIRD_PARTY.md
+  uploadId: 955818

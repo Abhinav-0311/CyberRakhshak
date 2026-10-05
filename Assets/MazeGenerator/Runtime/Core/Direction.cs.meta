@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 95265715ccdae124f89deba97f1b6f24
+AssetOrigin:
+  serializedVersion: 1
+  productId: 394188
+  packageName: "Maze Generator \u2014 Procedural 3D Toolkit"
+  packageVersion: 1.0.0
+  assetPath: Assets/MazeGenerator/Runtime/Core/Direction.cs
+  uploadId: 955818

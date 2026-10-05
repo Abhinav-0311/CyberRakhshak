@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b003bf7ffa915644bad6d200208cc599
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 394188
+  packageName: "Maze Generator \u2014 Procedural 3D Toolkit"
+  packageVersion: 1.0.0
+  assetPath: Assets/MazeGenerator/Samples/Materials/Glass.mat
+  uploadId: 955818

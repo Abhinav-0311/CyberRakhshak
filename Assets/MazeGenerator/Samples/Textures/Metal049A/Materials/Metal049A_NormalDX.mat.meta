@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: bce2cb03383313548998fbb1b8867491
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 394188
+  packageName: "Maze Generator \u2014 Procedural 3D Toolkit"
+  packageVersion: 1.0.0
+  assetPath: Assets/MazeGenerator/Samples/Textures/Metal049A/Materials/Metal049A_NormalDX.mat
+  uploadId: 955818

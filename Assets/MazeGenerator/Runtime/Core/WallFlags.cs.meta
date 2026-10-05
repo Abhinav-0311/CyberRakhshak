@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 160e1c8eed0acdd4195e59102a3a64d2
+AssetOrigin:
+  serializedVersion: 1
+  productId: 394188
+  packageName: "Maze Generator \u2014 Procedural 3D Toolkit"
+  packageVersion: 1.0.0
+  assetPath: Assets/MazeGenerator/Runtime/Core/WallFlags.cs
+  uploadId: 955818

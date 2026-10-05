@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 9f5a2192af2b53241858c9619862129e
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 394188
+  packageName: "Maze Generator \u2014 Procedural 3D Toolkit"
+  packageVersion: 1.0.0
+  assetPath: Assets/MazeGenerator/Editor/MazeGenerator.Editor.asmdef
+  uploadId: 955818
