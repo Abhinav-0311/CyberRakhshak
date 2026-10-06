@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ec176926a52b8f4cb6cb6b76afabc5e, type: 3}
+  m_Name: PhishingMazeIntro
+  m_EditorClassIdentifier: CyberRakshak::CyberRakshak.PATCH.PatchDialogueLine
+  speaker: PATCH
+  text: Welcome to Phishing Maze! A familiar label can hide a fake link. Check the
+    destination, not just the name. For this route, collect 30 of the 40 coins, then
+    find the green exit.
+  displaySeconds: 9

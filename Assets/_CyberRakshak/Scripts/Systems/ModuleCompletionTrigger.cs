@@ -1,5 +1,6 @@
 using System.Collections;
 using CyberRakshak.PATCH;
+using CyberRakshak.Platformer;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -16,9 +17,10 @@ namespace CyberRakshak.Runtime
         [SerializeField] private bool completesTutorial;
         [SerializeField] private string nextScene = "LevelSelect";
         [SerializeField, Min(0f)] private float transitionDelay = 2f;
+        [SerializeField] private CoinManager mazeCoins;
 
         private bool completed;
-        private bool IsMazePrototype => gameObject.scene.name == "Game_Level02";
+        private bool IsPhishingMaze => gameObject.scene.name == "Game_Level02";
 
         public void Configure(bool tutorial, string destination, float delay)
         {
@@ -34,12 +36,20 @@ namespace CyberRakshak.Runtime
                 return;
             }
 
+            if (IsPhishingMaze && (mazeCoins == null || !mazeCoins.CanExit))
+            {
+                if (mazeCoins != null)
+                    PatchDialoguePresenter.Ensure().Show("PATCH",
+                        $"Collect {mazeCoins.RequiredCoins} coins to leave. You have {mazeCoins.CollectedCoins}.", 2f);
+                return;
+            }
+
             completed = true;
             if (completesTutorial)
             {
                 GameProgression.CompleteTutorial();
             }
-            else if (!IsMazePrototype)
+            else if (!IsPhishingMaze)
             {
                 GameProgression.CompleteLevelOne(nextScene);
             }
@@ -51,11 +61,12 @@ namespace CyberRakshak.Runtime
         {
             PatchDialoguePresenter.Ensure().Show(
                 "PATCH",
-                IsMazePrototype ? "Maze exit reached. Returning to module select." :
+                IsPhishingMaze ? "Phishing Maze cleared! Remember: check the actual link, not just its label." :
                     completesTutorial ? "Training complete. Next: Firewall Foundations." : "Firewall Foundations complete. Training data secured.",
                 transitionDelay);
 
-            ShowCompletionOverlay(IsMazePrototype ? "MAZE EXIT REACHED" : completesTutorial ? "TUTORIAL COMPLETE" : "LEVEL 1 COMPLETE");
+            if (IsPhishingMaze) PlatformerSfx.PlayCoinChime(true);
+            ShowCompletionOverlay(IsPhishingMaze ? "PHISHING MAZE COMPLETE" : completesTutorial ? "TUTORIAL COMPLETE" : "LEVEL 1 COMPLETE");
             yield return new WaitForSecondsRealtime(transitionDelay);
             SceneManager.LoadScene(nextScene);
         }

@@ -88,6 +88,12 @@ namespace CyberRakshak.PATCH
             {
                 Ensure().Show("PATCH", "Clear the patrol: jump onto the spacemen from above. Side contact damages your integrity. Then use the launch pad to reach the water control.", 9f);
             }
+            else if (scene.name == "Game_Level02")
+            {
+                var intro = Resources.Load<PatchDialogueLine>("Dialogue/PhishingMazeIntro");
+                if (intro != null) Ensure().Show(intro);
+                else Debug.LogError("Phishing Maze introduction dialogue asset is missing.");
+            }
         }
 
         private void Awake()

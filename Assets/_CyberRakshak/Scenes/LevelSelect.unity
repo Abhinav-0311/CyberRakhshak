@@ -1388,7 +1388,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4286836874356307435, guid: 8dde2290e05951b4581af75fbf06a851, type: 3}
       propertyPath: m_Text
-      value: MAZE PROTOTYPE
+      value: PHISHING AWARENESS
       objectReference: {fileID: 0}
     - target: {fileID: 4286836874356307435, guid: 8dde2290e05951b4581af75fbf06a851, type: 3}
       propertyPath: m_Color.b
@@ -1512,7 +1512,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6326815796291421685, guid: 8dde2290e05951b4581af75fbf06a851, type: 3}
       propertyPath: m_Text
-      value: Level 2 Maze
+      value: Phishing Maze
       objectReference: {fileID: 0}
     - target: {fileID: 6326815796291421685, guid: 8dde2290e05951b4581af75fbf06a851, type: 3}
       propertyPath: m_Color.b
@@ -1544,7 +1544,7 @@ PrefabInstance:
       objectReference: {fileID: 424605490}
     - target: {fileID: 7506267175430679983, guid: 8dde2290e05951b4581af75fbf06a851, type: 3}
       propertyPath: m_Text
-      value: Find the exit. Phishing challenges are not implemented yet.
+      value: Collect 30 of 40 coins. Find the exit.
       objectReference: {fileID: 0}
     - target: {fileID: 9120785521499696694, guid: 8dde2290e05951b4581af75fbf06a851, type: 3}
       propertyPath: m_Name

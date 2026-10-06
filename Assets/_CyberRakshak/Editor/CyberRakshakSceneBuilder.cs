@@ -151,8 +151,8 @@ public static class CyberRakshakSceneBuilder
             "Meet PATCH. Learn to move, jump and interact.", .565f, UiAction.LoadTutorial);
         var levelOne = ModuleCard(prefab, content.transform, "LevelOne", "01", "FIREWALL FOUNDATIONS", "Firewall Foundations",
             "Clear the patrol. Extinguish the fire. Reach the exit.", .385f, UiAction.LoadLevelOne);
-        var levelTwo = ModuleCard(prefab, content.transform, "LevelTwo", "02", "MAZE PROTOTYPE", "Level 2 Maze",
-            "Find the exit. Phishing challenges are not implemented yet.", .205f, UiAction.LoadLevelTwo);
+        var levelTwo = ModuleCard(prefab, content.transform, "LevelTwo", "02", "PHISHING AWARENESS", "Phishing Maze",
+            "Collect 30 of 40 coins. Find the exit.", .205f, UiAction.LoadLevelTwo);
         var back = MenuButton("BackHit", content.transform, "<  BACK TO MENU", Cyan, true);
         Place(back.GetComponent<RectTransform>(), .065f, .075f, .26f, .135f);
         back.gameObject.AddComponent<UiActionButton>().action = UiAction.ReturnMainMenu;

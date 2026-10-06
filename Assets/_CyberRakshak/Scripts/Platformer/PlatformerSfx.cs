@@ -8,6 +8,44 @@ namespace CyberRakshak.Platformer
         private const string SfxKey = "CyberRakshak.Sfx";
         private static AudioClip blopClip;
         private static AudioClip patchVoiceClip;
+        private static AudioClip coinClip;
+        private static AudioClip unlockClip;
+
+        public static void PlayCoinChime(bool unlocked = false)
+        {
+            float volume = Mathf.Clamp01(PlayerPrefs.GetFloat(SfxKey, 1f));
+            if (volume <= 0f) return;
+            if (coinClip == null) coinClip = CreateChime("CoinPickup", new[] { 880f, 1320f });
+            if (unlockClip == null) unlockClip = CreateChime("MazeUnlocked", new[] { 660f, 880f, 1320f });
+            AudioClip clip = unlocked ? unlockClip : coinClip;
+            var emitter = new GameObject(unlocked ? "MazeUnlockedSfx" : "CoinPickupSfx");
+            var source = emitter.AddComponent<AudioSource>();
+            source.playOnAwake = false;
+            source.spatialBlend = 0f;
+            source.volume = volume * .55f;
+            source.clip = clip;
+            source.Play();
+            Object.Destroy(emitter, clip.length + .05f);
+        }
+
+        private static AudioClip CreateChime(string name, float[] notes)
+        {
+            const int rate = 22050;
+            const float noteSeconds = .12f;
+            var samples = new float[Mathf.CeilToInt(rate * noteSeconds * notes.Length)];
+            for (int i = 0; i < samples.Length; i++)
+            {
+                float time = i / (float)rate;
+                int note = Mathf.Min(notes.Length - 1, (int)(time / noteSeconds));
+                float t = time - note * noteSeconds;
+                float envelope = Mathf.Min(1f, t / .005f) * Mathf.Pow(1f - t / noteSeconds, 2f);
+                float phase = 2f * Mathf.PI * notes[note] * t;
+                samples[i] = envelope * (Mathf.Sin(phase) + .15f * Mathf.Sin(phase * 2f)) * .65f;
+            }
+            var clip = AudioClip.Create(name, samples.Length, 1, rate, false);
+            clip.SetData(samples, 0);
+            return clip;
+        }
 
         public static void PlayBlop(Vector3 position)
         {
