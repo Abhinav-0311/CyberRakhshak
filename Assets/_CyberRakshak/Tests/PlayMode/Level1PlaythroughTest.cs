@@ -186,7 +186,7 @@ namespace CyberRakshak.Tests
         {
             SceneManager.LoadScene("Assets/_CyberRakshak/Scenes/Game_Level01.unity");
             yield return null;
-            var controller = Object.FindFirstObjectByType<CharacterController>();
+            var controller = GameObject.FindGameObjectWithTag("Player").GetComponentInChildren<CharacterController>();
             // Isolate collision response from player steering; use real scene enemies and collision callbacks.
             ((Behaviour)controller.GetComponent("StarterAssets.ThirdPersonController")).enabled = false;
             var health = controller.GetComponent<PlayerHealth>();
@@ -197,6 +197,8 @@ namespace CyberRakshak.Tests
             Assert.That(GameObject.Find("ObjectiveLabel").GetComponent<Text>().text, Is.EqualTo("OBJECTIVE: CLEAR THE PATROL"));
             foreach (var enemy in enemies)
                 enemy.enabled = false;
+            yield return new WaitForFixedUpdate();
+            Physics.SyncTransforms();
 
             foreach (var enemy in enemies)
             {
@@ -207,7 +209,8 @@ namespace CyberRakshak.Tests
                     controller.Move(Vector3.down * .1f);
                     yield return null;
                 }
-                Assert.That(enemy.IsDefeated, Is.True, enemy.name);
+                Assert.That(enemy.IsDefeated, Is.True, enemy.name + "; player=" + controller.transform.position.ToString("F3") +
+                    "; feet=" + controller.bounds.min.y + "; hitbox=" + enemy.GetComponent<Collider>().bounds + "; health=" + health.CurrentHealth);
                 Assert.That(health.CurrentHealth, Is.EqualTo(100), "A descending stomp must not damage the player.");
                 if (PlayerPrefs.GetFloat("CyberRakshak.Sfx", 1f) > 0f)
                 {
@@ -297,7 +300,7 @@ namespace CyberRakshak.Tests
         {
             SceneManager.LoadScene("Assets/_CyberRakshak/Scenes/Game_Level01.unity");
             yield return null;
-            var controller = Object.FindFirstObjectByType<CharacterController>();
+            var controller = GameObject.FindGameObjectWithTag("Player").GetComponentInChildren<CharacterController>();
             ((Behaviour)controller.GetComponent("StarterAssets.ThirdPersonController")).enabled = false;
             var belts = Object.FindObjectsByType<TreadmillPlatform>(FindObjectsSortMode.None);
             var presenter = PatchDialoguePresenter.Ensure();
@@ -329,6 +332,34 @@ namespace CyberRakshak.Tests
                     "Direction cues must scroll rather than look like a static floor.");
                 Assert.That(presenter.IsShowing, Is.EqualTo(firstBelt), "Treadmill instruction must appear only on the first belt.");
                 presenter.Hide();
+                if (firstBelt)
+                {
+                    var motor = (Behaviour)controller.GetComponent("StarterAssets.ThirdPersonController");
+                    var inputs = controller.GetComponent("StarterAssets.StarterAssetsInputs");
+                    var move = inputs.GetType().GetField("move");
+                    inputs.GetType().GetField("look").SetValue(inputs, Vector2.zero);
+                    motor.GetType().GetField("LockCameraPosition").SetValue(motor, true);
+                    motor.GetType().GetField("MoveSpeed").SetValue(motor, 2f);
+                    inputs.GetType().GetField("sprint").SetValue(inputs, false);
+                    motor.enabled = true;
+                    // Exercise the real motor against the belt, not just passive carrying.
+                    float warmup = Time.time + .5f;
+                    while (Time.time < warmup)
+                    {
+                        Vector3 heading = Quaternion.Euler(0f, -Camera.main.transform.eulerAngles.y, 0f) * -belt.backwardDirection;
+                        move.SetValue(inputs, new Vector2(heading.x, heading.z));
+                        yield return null;
+                    }
+                    Vector3 walkingStart = controller.transform.position;
+                    float walkingTime = Time.time;
+                    yield return new WaitForSeconds(2f);
+                    Assert.That(controller != null, Is.True, "Belt walking must not fall/restart the level.");
+                    float forwardSpeed = Vector3.Dot(controller.transform.position - walkingStart, -belt.backwardDirection) / (Time.time - walkingTime);
+                    Assert.That(forwardSpeed, Is.GreaterThan(.65f), "2 m/s walking must reliably overcome the 1.25 m/s belt.");
+                    Assert.That(controller.isGrounded, Is.True, "Belt motion must preserve grounded contact.");
+                    move.SetValue(inputs, Vector2.zero);
+                    motor.enabled = false;
+                }
                 firstBelt = false;
             }
             Assert.That(presenter.ShowOnce("level1-treadmill", "PATCH", "Duplicate"), Is.False,
@@ -450,6 +481,20 @@ namespace CyberRakshak.Tests
         [UnityTest]
         public IEnumerator Level1_FinalRouteCanBeCrossedWithThePlayerMotor()
         {
+            float savedStep = Time.captureDeltaTime;
+            try
+            {
+                foreach (int frameRate in new[] { 30, 60, 120 })
+                {
+                    Time.captureDeltaTime = 1f / frameRate;
+                    yield return CrossFinalRoute();
+                }
+            }
+            finally { Time.captureDeltaTime = savedStep; }
+        }
+
+        private static IEnumerator CrossFinalRoute()
+        {
             SceneManager.LoadScene("Assets/_CyberRakshak/Scenes/Game_Level01.unity");
             yield return null;
             var controller = GameObject.FindGameObjectWithTag("Player").GetComponentInChildren<CharacterController>();
@@ -458,6 +503,8 @@ namespace CyberRakshak.Tests
             Assert.That(inputs, Is.Not.Null);
             var move = inputs.GetType().GetField("move");
             var jump = inputs.GetType().GetField("jump");
+            inputs.GetType().GetField("look").SetValue(inputs, Vector2.zero);
+            motor.GetType().GetField("LockCameraPosition").SetValue(motor, true);
             // Keep camera-relative steering facing down the authored route.
             var cameraTarget = (GameObject)motor.GetType().GetField("CinemachineCameraTarget").GetValue(motor);
             cameraTarget.transform.rotation = Quaternion.identity;
@@ -476,18 +523,28 @@ namespace CyberRakshak.Tests
                 Bounds previous = surfaces[index - 1].bounds;
                 Bounds destination = surfaces[index].bounds;
                 move.SetValue(inputs, Vector2.up);
-                float deadline = Time.time + 8f;
+                // Walking against a 1.25 m/s belt at 2 m/s takes more than eight
+                // seconds across a tile. Never jump just because that wait expired.
+                float deadline = Time.time + 20f;
                 while (controller.transform.position.z < previous.max.z - .8f && Time.time < deadline)
                     yield return null;
+                Assert.That(controller.transform.position.z, Is.GreaterThanOrEqualTo(previous.max.z - .8f),
+                    route[index - 1] + " must reach the takeoff edge without stalling on the belt.");
                 Assert.That(controller.isGrounded, Is.True, route[index - 1] + " approach");
                 jump.SetValue(inputs, true);
                 yield return null;
                 jump.SetValue(inputs, false);
-                yield return new WaitForSeconds(1.05f);
+                var leaping = motor.GetType().GetField("_isLeaping", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                deadline = Time.time + 3f;
+                while (Time.time < deadline && ((bool)leaping.GetValue(motor) || !controller.isGrounded ||
+                    controller.bounds.center.z < destination.min.z))
+                    yield return null;
                 move.SetValue(inputs, Vector2.zero);
                 yield return new WaitForSeconds(.2f);
-                Assert.That(controller.bounds.center.z, Is.InRange(destination.min.z, destination.max.z), route[index]);
-                Assert.That(controller.isGrounded, Is.True, route[index] + " landing");
+                string context = route[index] + " at " + (1f / Time.captureDeltaTime) + " fps";
+                Assert.That(controller.bounds.center.z, Is.InRange(destination.min.z, destination.max.z), context);
+                Assert.That(controller.isGrounded, Is.True, context + " landing");
+                Assert.That(controller.bounds.min.y, Is.EqualTo(destination.max.y).Within(.12f), context + " feet height");
             }
 
             Bounds finish = surfaces[surfaces.Length - 1].bounds;

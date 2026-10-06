@@ -149,6 +149,7 @@ namespace StarterAssets
         // ============================================================
 
         private bool _isLeaping = false;
+        private Vector3 _environmentalDisplacement;
         private bool _traversalOverrideActive;
 
         private float _leapTimer = 0.0f;
@@ -289,6 +290,7 @@ namespace StarterAssets
         /// <summary>Temporarily gives a traversal object exclusive control of CharacterController movement.</summary>
         public void BeginTraversalOverride()
         {
+            _environmentalDisplacement = Vector3.zero;
             _traversalOverrideActive = true;
             _isLeaping = false;
             _verticalVelocity = 0f;
@@ -315,7 +317,10 @@ namespace StarterAssets
         {
             if (!_traversalOverrideActive)
             {
-                _controller.Move(delta);
+                // Combine belt motion with the motor's next Move so it cannot replace
+                // grounded state or the velocity used for player acceleration.
+                if (enabled) _environmentalDisplacement += delta;
+                else _controller.Move(delta);
             }
         }
 
@@ -426,12 +431,9 @@ namespace StarterAssets
                 targetSpeed = 0.0f;
             }
 
-            float currentHorizontalSpeed =
-                new Vector3(
-                    _controller.velocity.x,
-                    0.0f,
-                    _controller.velocity.z
-                ).magnitude;
+            // Controller velocity also contains conveyor/collision motion; accelerate
+            // the player's commanded speed independently of that external movement.
+            float currentHorizontalSpeed = _speed;
 
             float speedOffset = 0.1f;
 
@@ -524,8 +526,9 @@ namespace StarterAssets
                     _verticalVelocity,
                     0.0f
                 ) *
-                Time.deltaTime
+                Time.deltaTime + _environmentalDisplacement
             );
+            _environmentalDisplacement = Vector3.zero;
 
             if (_hasAnimator)
             {
@@ -734,8 +737,9 @@ namespace StarterAssets
             _controller.Move(
                 horizontalMovement +
                 Vector3.up *
-                verticalMovement
+                verticalMovement + _environmentalDisplacement
             );
+            _environmentalDisplacement = Vector3.zero;
 
             // --------------------------------------------------------
             // End leap
